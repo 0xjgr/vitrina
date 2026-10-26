@@ -1,7 +1,7 @@
 # La web por dentro
 
 Lo que hace cada página, las reglas de la vault y dónde está cada cosa. Para
-copiarla, arrancarla y usarla basta el [README](../README.md).
+copiarla, arrancarla y usarla basta el [README](../README.es.md).
 
 ## Lo que enseña
 

@@ -1,237 +1,229 @@
-# Vitrina
+# Vitrine
 
-Una colección de juegos, películas, series, libros y discos, con lo que pienso
-de cada uno. Se escribe en Obsidian y se publica como web estática.
+*En castellano: [README.es.md](README.es.md).*
 
-**→ [jorgeress.github.io/vitrina](https://jorgeress.github.io/vitrina/)**
+A personal collection of games, films, series, books and albums, with what you
+think of each one. It's written in Obsidian and published as a static website.
+This repository is my own, in Spanish
+([jorgeress.github.io/vitrina](https://jorgeress.github.io/vitrina/)), and it
+works as a template for yours, in English or Spanish.
 
-*In English: [README.en.md](README.en.md). Sirve de plantilla para hacerte la
-tuya, en castellano o en inglés.*
+Each work is a Markdown entry. The site shows each room with its covers and
+filters, every entry with your opinion, the best of the best, your groups, a
+yearbook and a constellation linking works by what they share. No source needs
+an API key, an account or payment.
 
-Cada obra es una ficha en Markdown. La web enseña cada sala con sus portadas y
-filtros, la ficha de cada obra con tu opinión, lo mejor de lo mejor, tus grupos,
-un anuario y una constelación que las une por lo que comparten. Ninguna fuente
-pide clave, cuenta ni pago.
+## Make your own
 
-## Hacerte la tuya
-
-1. Haz un fork (o *Use this template*) y clónalo.
-2. Déjala vacía y en tu idioma:
+1. Use this repository as a template on GitHub (or fork it) and clone it.
+2. Leave it empty and in English:
 
    ```bash
    pip install -r requirements.txt
-   scripts/empezar.py --idioma es --nombre "Vitrina" --dueno "Tu nombre" \
-       --repo https://github.com/tu-usuario/vitrina --vaciar --si
+   scripts/empezar.py --language en --name "Shelf" --owner "Alex" \
+       --repo https://github.com/alex/shelf --empty --yes
    ```
 
-3. En GitHub, *Settings → Pages → Source*: **GitHub Actions**.
-4. Crea las etiquetas de los Issues, para añadir y editar desde el móvil:
+3. In GitHub, *Settings → Pages → Source*: **GitHub Actions**.
+4. Create the Issue labels, to add and edit from your phone:
 
    ```bash
-   gh label create nueva-pieza && gh label create editar-pieza
+   gh label create new-piece && gh label create edit-piece
    ```
 
-   (en una vitrina en inglés, `new-piece` y `edit-piece`).
-5. Cambia el primer párrafo de `content/index.md`: es la presentación de la web.
+5. Change the first paragraph of `content/index.md`: it's the site's welcome text.
 
-Cada push a `main` pasa las pruebas y publica la web.
+Every push to `main` runs the tests and publishes the site.
 
-## Arrancarla
+## Run it
 
-Hace falta [Node 22.12 o superior](https://nodejs.org), Python 3 y, para
-escribir las fichas, [Obsidian](https://obsidian.md).
+You need [Node 22.12+](https://nodejs.org), Python 3 and, to write entries,
+[Obsidian](https://obsidian.md).
 
 ```bash
 pip install -r requirements.txt
 cd web
 npm ci --ignore-scripts --include=optional
-npm run dev                    # http://localhost:4321/vitrina/
+npm run dev            # http://localhost:4321/shelf/
 ```
 
-- Lo que guardas en Obsidian sale en `npm run dev` al momento.
-- Sin `--ignore-scripts`, `sharp` intenta compilarse y la instalación falla.
-- El buscador y las tarjetas para compartir solo se hacen al construir:
-  `npm run build` y después `npm run preview`.
+- What you save in Obsidian shows up in `npm run dev` right away.
+- Without `--ignore-scripts`, `sharp` tries to compile and the install fails.
+- Search and share cards are made at build time: `npm run build`, then
+  `npm run preview`.
 
-En Obsidian, *Abrir carpeta como almacén* sobre **`content/`**, no sobre la raíz
-del repo.
+In Obsidian, open **`content/`** as a vault, not the repository root.
 
-### La configuración
+### Configuration
 
-`vitrine.config.json`, en la raíz, lo leen la web y los scripts:
+`vitrine.config.json`, at the root, is read by the site and the scripts:
 
 ```json
 {
-  "name": "Vitrina",
-  "owner": "Tu nombre",
-  "language": "es",
-  "site": "https://tu-usuario.github.io",
-  "base": "/vitrina",
-  "repo": "https://github.com/tu-usuario/vitrina",
-  "folders": { "game": "juegos", "film": "pelis", "series": "series", "book": "libros",
-               "album": "musica", "author": "autores", "private": "privado", "group": "grupos" }
+  "name": "Shelf",
+  "owner": "Alex",
+  "language": "en",
+  "site": "https://alex.github.io",
+  "base": "/shelf",
+  "repo": "https://github.com/alex/shelf",
+  "folders": { "game": "games", "film": "films", "series": "series", "book": "books",
+               "album": "music", "author": "authors", "private": "private", "group": "groups" }
 }
 ```
 
-`language` (`es` o `en`) cambia la interfaz, las direcciones y lo que dicen los
-scripts. `folders` es el nombre de cada carpeta de la vault y la dirección de
-cada sala. Lo escribe `empezar.py`.
+`language` (`en` or `es`) changes the interface, the page addresses and what the
+scripts say. `folders` names each vault folder, which is also each room's
+address. `empezar.py` writes it.
 
-Tus cuentas, para sacar las fechas (ver [Cuándo lo terminaste](#cuándo-lo-terminaste)),
-van aparte en `vitrine.local.json`, que git no sube:
+Your accounts, to fetch dates (see [When you finished it](#when-you-finished-it)),
+go in `vitrine.local.json`, which git ignores:
 
 ```json
-{ "accounts": { "letterboxd": "usuario", "steam": "7656119…", "goodreads": "", "listenbrainz": "" } }
+{ "accounts": { "letterboxd": "user", "steam": "7656119…", "goodreads": "", "listenbrainz": "" } }
 ```
 
-## Usarla
+## Use it
 
-### Añadir una obra
+### Adding a work
 
-Con su enlace o buscándola por el título:
+From its link or searching by title:
 
 ```bash
-scripts/nueva.py https://store.steampowered.com/app/367520/Hollow_Knight/
-scripts/nueva.py peli "parasite" --nota 10 --favorito
-scripts/nueva.py serie "death note" --grupo "Anime y manga" --terminada 2021-03
-scripts/nueva.py album "in rainbows" --estado "en curso"
-scripts/nueva.py libro "dune" --oculta
+scripts/nueva.py https://store.steampowered.com/app/504230/Celeste/ --rating 9
+scripts/nueva.py film "parasite" --rating 10 --favorite
+scripts/nueva.py series "death note" --group Anime --finished-on 2021-03
+scripts/nueva.py album "in rainbows" --status "in progress"
+scripts/nueva.py book "dune" --hidden
 ```
 
-Valen los enlaces de Steam, Letterboxd, TVmaze, MusicBrainz, Open Library,
-Spotify, IMDb, TMDB, FilmAffinity, MyAnimeList, AniList, Goodreads, Discogs,
-Wikipedia y más. La ficha sale con portada, año, autor, géneros y el «De qué
-va». Las órdenes valen en castellano y en inglés (`peli` o `film`, `--nota` o
-`--rating`). Todas las opciones, en [`docs/scripts.md`](docs/scripts.md).
+Links from Steam, Letterboxd, TVmaze, MusicBrainz, Open Library, Spotify, IMDb,
+TMDB, MyAnimeList, AniList, Goodreads, Discogs, Wikipedia and more work. The
+entry comes with cover, year, author, genres and “What it's about”. The
+scripts' names are in Spanish; their messages and options follow `language`.
 
-### Desde el móvil
+### From your phone
 
-Abre un Issue con la plantilla **Nueva pieza** y pega el enlace; si quieres,
-pon nota, estado, grupos, fecha y tu opinión. Una Action crea la ficha, publica
-la web y cierra el Issue. Solo atiende los Issues del dueño del repo.
+Open an Issue with the **New piece** form and paste the link; add a rating,
+status, groups, date and your opinion if you like. An Action creates the entry,
+publishes the site and closes the Issue. It only runs for the owner's Issues.
 
-Con la web instalada como app, en Android sale en el menú de **Compartir**:
-compartir un enlace desde Letterboxd, Steam o Spotify abre el formulario con el
-enlace puesto. También está en `/anadir/`.
+With the site installed as an app on Android, it shows up in the **Share**
+menu: sharing a link from Letterboxd, Steam or Spotify opens the form with the
+link in place. It's also at `/add/`.
 
-### Editar desde la web
+### Editing from the site
 
-En `/anadir/`, marca «Enseñar el botón Editar». Desde entonces, en ese
-navegador, cada ficha lleva un **✎ Editar** que abre el Issue **Editar pieza**
-con la nota, el estado, la fecha y la opinión que ya tiene. Cambias lo que
-quieras, lo mandas, y en un par de minutos está publicado.
+On `/add/`, tick “Show the Edit button”. From then on, in that browser, every
+entry has a **✎ Edit** link that opens the **Edit piece** Issue with its current
+rating, status, date and opinion. Change what you want, submit it, and it's
+published in a couple of minutes.
 
-### Tu opinión
+### Your opinion
 
-Lo que escribes tú va arriba de la ficha, en su recuadro, y debajo la cita de
-la fuente:
+What you write goes at the top of the entry, in its own box, with the source's
+quote below:
 
 ```markdown
-> [!vitrina] Por qué está en la vitrina
-> Me reí con esta desde los catorce y no he parado.
+> [!vitrine] Why it's on display
+> What it left you.
 ```
 
-No hace falta escribir el marco: escribe suelto encima de la cita y
-`scripts/al-dia.py` lo enmarca.
+No need to write the frame: write loose above the quote and
+`scripts/al-dia.py` frames it.
 
-### Una ficha a mano
+### An entry by hand
 
-Un `.md` en la carpeta de su sala. Solo `type` es obligatorio, y las claves van
-en inglés:
+A `.md` in its room's folder. Only `type` is required, and keys are always in
+English:
 
 ```markdown
 ---
-type: game           # game, film, series, book o album
+type: game           # game, film, series, book or album
 year: 2024
 author: LocalThunk
-rating: 9            # del 1 al 10
-status: finished     # pending, in-progress, finished o dropped
+rating: 9            # 1 to 10
+status: finished     # pending, in-progress, finished or dropped
 favorite: true
 tags:
   - strategy
 groups:
-  - Roguelikes       # los grupos que haces tú
-finished_on: 2024-05 # AAAA, AAAA-MM o AAAA-MM-DD: el anuario
-started_on: 2024-02  # cuándo lo empezaste
-times: 2             # cuántas veces lo has terminado
-follows:             # a cuál continúa; también based_on y soundtrack
-  - "[[juegos/Slay the Spire]]"
+  - Roguelikes
+finished_on: 2024-05 # YYYY, YYYY-MM or YYYY-MM-DD: the yearbook
+started_on: 2024-02  # when you started it
+times: 2             # how many times you finished it
+follows:             # which one it follows; also based_on and soundtrack
+  - "[[games/Slay the Spire]]"
 ---
 ```
 
-Después pasa `scripts/al-dia.py`, que pone portada, datos y texto. La plantilla
-con todos los campos explicados está en `content/_plantillas/Ficha.md`.
+Then run `scripts/al-dia.py`, which adds cover, data and text. The template with
+every field explained is `content/_plantillas/Ficha.md`.
 
-### Ponerle nota a lo que ya tienes
+### Rating what you already have
 
 ```bash
 scripts/repasar.py
 ```
 
-Va una a una por las fichas sin nota o sin estado y contestas en una línea:
-`9 f` es un 9 y favorita, `t` terminado, `p` pendiente, Enter la salta, `q`
-para. Después te pide tu opinión.
+It goes through entries without a rating or status, one line each: `9 f` is a 9
+and a favorite, `t` finished, `p` pending, Enter skips, `q` stops. Then it asks
+for your opinion.
 
-### Traer tu colección
+### Bringing in a collection
 
 ```bash
-scripts/importar.py letterboxd-rss TU_USUARIO
-scripts/importar.py steam ~/Descargas/juegos.html
-scripts/importar.py listenbrainz TU_USUARIO
-scripts/importar.py spotify-export ~/Descargas/spotify.zip
+scripts/importar.py letterboxd-rss YOUR_USERNAME
+scripts/importar.py steam ~/Downloads/games.html
+scripts/importar.py listenbrainz YOUR_USERNAME
+scripts/importar.py spotify-export ~/Downloads/spotify.zip
 scripts/al-dia.py
 ```
 
-Lo importado entra en borrador (`draft: true`): se ve en Obsidian pero no en la
-web hasta que quitas esa línea. `al-dia.py` rellena lo que falte; con
-`--sin-red`, solo lo que no pregunta a nadie. Qué trae cada fuente, en
-[`docs/importar.md`](docs/importar.md).
+Imports come in as drafts (`draft: true`): visible in Obsidian, not on the site
+until you remove that line. `al-dia.py` fills in what's missing; with
+`--offline`, only what needs no network.
 
-### Cuándo lo terminaste
+### When you finished it
 
 ```bash
-scripts/cuando.py                       # las cuentas de vitrine.local.json
-scripts/cuando.py letterboxd TU_USUARIO
+scripts/cuando.py                          # the accounts in vitrine.local.json
+scripts/cuando.py letterboxd YOUR_USERNAME
 ```
 
-Pone las fechas donde falten: las películas, del diario de Letterboxd; los
-libros, de Goodreads; los juegos, del primer logro de Steam; los discos, de la
-primera escucha en ListenBrainz o en el historial de Spotify. Lo que no se sabe
-seguro se queda vacío. También lo pasa `al-dia.py`.
+It fills in dates where missing: films from your Letterboxd diary, books from
+Goodreads, games from your first Steam achievement, albums from your first
+listen on ListenBrainz or in Spotify's history. What isn't certain stays empty.
+`al-dia.py` runs it too.
 
-### Grupos
+### Groups
 
-Colecciones que cruzan las salas («Anime y manga», «Lo que me recomendó
-Pablo»): `groups: [Anime y manga]` en la ficha. Una nota con su nombre en
-`content/grupos/` les da texto, y `featured: true` los saca en la entrada.
+Collections across rooms (“Anime”, “What Sam recommended”): `groups: [Anime]`
+in the entry. A note with its name in `content/groups/` gives it a text, and
+`featured: true` puts it on the home page.
 
-### Lo que se ve y lo que no
+### What shows and what doesn't
 
-| | Cómo | ¿En la web? | ¿En GitHub? |
+| | How | On the site? | On GitHub? |
 |---|---|---|---|
-| **Borrador** | `draft: true` | no | sí |
-| **Oculta** | `hidden: true` | no | **sí** |
-| **Campos ocultos** | `hidden: [rating, opinion]` | la ficha sí, esos campos no | sí |
-| **Privada** | en `content/privado/` | no | no |
+| **Draft** | `draft: true` | no | yes |
+| **Hidden** | `hidden: true` | no | **yes** |
+| **Hidden fields** | `hidden: [rating, opinion]` | the entry yes, those fields no | yes |
+| **Private** | in `content/private/` | no | no |
 
-Oculto no es secreto: el repo es público. Lo que no deba ver nadie va en
-`content/privado/`, que git no sube. `scripts/vistazo.py` enseña la web con
-todo dentro, solo en tu ordenador.
+Hidden is not secret: the repository is public. What nobody should see goes in
+`content/private/`, which git never uploads. `scripts/vistazo.py` shows the site
+with everything in it, on your computer only.
 
-## Más
+## More (in Spanish)
 
-- [`docs/scripts.md`](docs/scripts.md): todos los scripts y sus opciones.
-- [`docs/importar.md`](docs/importar.md): qué trae cada fuente.
-- [`docs/la-web.md`](docs/la-web.md): lo que enseña cada página, las reglas de
-  la vault, la estructura y las pruebas.
-- [`docs/por-hacer.md`](docs/por-hacer.md): lo que queda.
+- [`docs/scripts.md`](docs/scripts.md): every script and its options.
+- [`docs/importar.md`](docs/importar.md): what each source brings.
+- [`docs/la-web.md`](docs/la-web.md): what each page shows, the vault rules,
+  the structure and the tests.
 
-## Licencia
+## License
 
-El código va bajo MIT. Hasta octubre de 2026 la web la hacía un fork de
-[Quartz](https://quartz.jzhao.xyz), de jackyzha0, también MIT; sigue en el
-historial. Los textos de `content/` son míos, Copyright (c) 2026 Jorge García,
-bajo [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.es).
-Las carátulas son de sus autores y se usan en miniatura para identificar cada
-obra. Las fuentes de `web/fuentes/` son de sus autores, bajo la SIL Open Font
-License. El detalle, en `LICENSE.txt`.
+Code under MIT. The texts in `content/` are mine, under CC BY-SA 4.0; in your
+vitrine they're yours. Covers belong to their owners and are used as thumbnails
+to identify each work. The fonts in `web/fuentes/` are under the SIL Open Font
+License. Details in `LICENSE.txt`.
