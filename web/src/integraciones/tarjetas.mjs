@@ -7,7 +7,7 @@
 // se guarda en una caché por su contenido, y entre builds solo se rehace la
 // que ha cambiado.
 import { createHash } from "node:crypto";
-import { copyFile, mkdir, stat, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -15,7 +15,7 @@ import sharp from "sharp";
 const FUENTES = fileURLToPath(new URL("../../fuentes/", import.meta.url));
 const CACHE = fileURLToPath(new URL("../../node_modules/.cache/tarjetas/", import.meta.url));
 // Sube cuando cambie el dibujo, para que la caché no sirva las viejas.
-const VERSION = "1";
+const VERSION = "2";
 
 const ANCHO = 1200;
 const ALTO = 630;
@@ -219,7 +219,12 @@ async function pintar(t, textos, portadas, colores, logger) {
   capas.push({ input: direccion.buffer, left: ANCHO - MARGEN - direccion.ancho, top: base - direccion.alto });
   capas.push({ input: marca.buffer, left: ANCHO - MARGEN - direccion.ancho - 18 - marca.ancho, top: base - marca.alto - 1 });
 
-  return fondo.composite(capas).png({ compressionLevel: 9, palette: false }).toBuffer();
+  // En JPEG y no en PNG: con la carátula desenfocada de fondo, el PNG pesaba
+  // medio mega por tarjeta y eran 124 de los 142 MB de la web. GitHub Pages
+  // no publica más de 1 GB, así que hacia las 1.800 fichas habría dejado de
+  // desplegarse. Las tarjetas se miran en un chat, no se amplían: a calidad
+  // 85 no se nota y pesan unas cinco veces menos.
+  return fondo.composite(capas).flatten({ background: FONDO }).jpeg({ quality: 85, mozjpeg: true }).toBuffer();
 }
 
 /** Lee los colores de cada sala del tema oscuro de global.css. */
@@ -233,6 +238,7 @@ export async function hacerTarjetas({ salida, datos, portadas, css, logger }) {
   await mkdir(CACHE, { recursive: true });
   let hechas = 0;
   let deCache = 0;
+  const usadas = new Set();
   for (const t of datos.tarjetas) {
     const destino = join(salida, t.salida);
     await mkdir(dirname(destino), { recursive: true });
@@ -241,17 +247,21 @@ export async function hacerTarjetas({ salida, datos, portadas, css, logger }) {
       try {
         huella = huella.update(String((await stat(join(dir, t.portada ?? ""))).mtimeMs));
       } catch {}
-    const enCache = join(CACHE, `${huella.digest("hex")}.png`);
+    const enCache = join(CACHE, `${huella.digest("hex")}.jpg`);
+    usadas.add(enCache);
     try {
       await copyFile(enCache, destino);
       deCache++;
       continue;
     } catch {}
-    const png = await pintar(t, datos.textos, portadas, colores, logger);
-    await writeFile(destino, png);
-    await writeFile(enCache, png);
+    const imagen = await pintar(t, datos.textos, portadas, colores, logger);
+    await writeFile(destino, imagen);
+    await writeFile(enCache, imagen);
     hechas++;
   }
+  // Lo que no ha usado este build es de fichas que han cambiado o ya no
+  // están: fuera, que la caché viaja entre despliegues y si no solo crece.
+  for (const f of await readdir(CACHE)) if (!usadas.has(join(CACHE, f))) await rm(join(CACHE, f), { force: true });
   logger.info(`tarjetas: ${hechas} hechas, ${deCache} de la caché`);
 }
 

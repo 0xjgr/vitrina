@@ -45,7 +45,7 @@ from xml.etree import ElementTree
 
 import nueva
 from idioma import ayuda, opciones
-from vitrina import CARPETAS, ESTADOS, _, escribir_ficha, estado_de, parecidos, pedir
+from vitrina import CARPETAS, ESTADOS, _, escribir_ficha, ya_existe, estado_de, parecidos, pedir
 
 # Umbrales del modo rapido. Ninguna fuente sabe si algo te gusto salvo
 # Letterboxd, asi que el resto se criba por la unica senal que dan: el uso.
@@ -592,7 +592,10 @@ def volcar(elementos, tipo, args, cribar=True):
             # caratula cuelga de un hash que solo aparece en tu propia pagina.
             campos["capsule"] = dato["capsule"]
         if args.dry_run:
-            nuevas += 1
+            if ya_existe(carpeta, titulo):
+                repetidas += 1
+            else:
+                nuevas += 1
             continue
         if escribir_ficha(carpeta, titulo, campos, borrador=not args.sin_borrador):
             nuevas += 1

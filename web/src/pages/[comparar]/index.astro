@@ -1,5 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
+import { AMIGOS } from "../../config";
 import { t } from "../../i18n";
 import { url } from "../../lib/obras";
 
@@ -31,6 +32,17 @@ const cliente = { ...t.cliente, noEncuentro: t.cliente.noEncuentro("{d}") };
         <input type="file" name="fichero" accept=".json,application/json" />
       </label>
     </form>
+    {/* Las vitrinas de `friends` en la config, a un toque: son las mismas que
+         ofrece Sorpréndeme. */}
+    {
+      AMIGOS.length > 0 && (
+        <p class="amigos">
+          {AMIGOS.map((a) => (
+            <a href={`?con=${encodeURIComponent(a.url)}`}>{a.name}</a>
+          ))}
+        </p>
+      )
+    }
     <p class="aviso" id="aviso" role="status"></p>
 
     <div id="resultado" hidden>
@@ -241,6 +253,22 @@ const cliente = { ...t.cliente, noEncuentro: t.cliente.noEncuentro("{d}") };
     align-items: center;
     gap: 10px;
     margin-top: 28px;
+  }
+  .amigos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .amigos a {
+    padding: 6px 12px;
+    border: 1px solid var(--borde);
+    border-radius: 999px;
+    color: var(--texto);
+    text-decoration: none;
+  }
+  .amigos a:hover {
+    border-color: var(--texto);
   }
   .formulario input[type="url"] {
     flex: 1;

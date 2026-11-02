@@ -63,6 +63,7 @@ function sinLoOculto(o: Obra): Obra {
   if (ocultos.includes("groups")) data.groups = null;
   if (ocultos.includes("added")) data.added = null;
   if (ocultos.includes("times")) data.times = null;
+  if (ocultos.includes("via")) data.via = null;
   if (!ocultos.includes("opinion") && !ocultos.includes("label")) return { ...o, data };
   // La opinión se quita del texto y del HTML ya hecho: no basta con no
   // pintarla, tiene que no estar en la página.
@@ -125,7 +126,7 @@ export function portada(o: Obra): string | null {
 }
 
 /** La tarjeta para compartir la ficha, que hace la integración al construir. */
-export const tarjeta = (o: Obra) => url(`tarjetas/${o.id.replace(/[^a-z0-9/-]+/gi, "_")}.png`);
+export const tarjeta = (o: Obra) => url(`tarjetas/${o.id.replace(/[^a-z0-9/-]+/gi, "_")}.jpg`);
 
 export const autores = (o: Obra) => separarAutores(o.data.author);
 export const quienFirma = (o: Obra) => enumerar(autores(o), t.y);
@@ -144,7 +145,9 @@ export function enlaceEditar(o: Obra): string | null {
   const ficha = rutaFicha(o);
   if (!ficha) return null;
   const campos: Record<string, string> = { template: t.plantillaEditar, title: `${t.editar}: ${titulo(o)}`, ficha };
+  if (o.data.rating) campos.nota = String(o.data.rating);
   if (o.data.finished_on) campos.terminada = o.data.finished_on;
+  if (o.data.via?.length) campos.via = o.data.via.join(", ");
   const escrita = lineasOpinion(o.body);
   if (escrita) campos.frase = escrita;
   return `${REPO}/issues/new?${new URLSearchParams(campos)}`;
@@ -167,6 +170,30 @@ export function slugAutor(autor: string, slugs: Map<string, string>): string {
 }
 export const rutaAutor = (autor: string, slugs: Map<string, string>) => rutaFija("autores", `${slugAutor(autor, slugs)}/`);
 export const rutaTag = (tag: string) => rutaFija("tags", `${slugQuartz(tag)}/`);
+
+// --- me llegó por ----------------------------------------------------------------
+
+/** Quien te la recomendó o de dónde salió, con su página. Los nombres se
+ * juntan por su dirección, así que «Pablo» y «pablo» son la misma persona; se
+ * enseña como esté escrito la primera vez. A diferencia de los autores, aquí
+ * una sola pieza ya merece página: dice de dónde te vino. */
+export interface Via {
+  nombre: string;
+  slug: string;
+  obras: Obra[];
+}
+export function vias(todas: Obra[]): Via[] {
+  const porSlug = new Map<string, Via>();
+  for (const o of [...todas].sort(porAlta))
+    for (const nombre of o.data.via ?? []) {
+      const slug = slugQuartz(nombre);
+      const v = porSlug.get(slug) ?? { nombre, slug, obras: [] };
+      if (!v.obras.includes(o)) v.obras.push(o);
+      porSlug.set(slug, v);
+    }
+  return [...porSlug.values()].sort((a, b) => b.obras.length - a.obras.length || comparaTexto(a.nombre, b.nombre));
+}
+export const rutaVia = (nombre: string) => rutaFija("via", `${slugQuartz(nombre)}/`);
 
 /** Autores con dos obras o más: el mismo umbral que autores.py. */
 export function autoresRepetidos(todas: Obra[]): Map<string, Obra[]> {

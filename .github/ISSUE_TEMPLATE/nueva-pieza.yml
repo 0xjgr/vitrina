@@ -36,6 +36,11 @@ body:
       label: "Grupos"
       description: "Separados por comas. Si el grupo no existe, se crea solo."
   - type: input
+    id: via
+    attributes:
+      label: "Me llegó por"
+      description: "Quién te la recomendó o de dónde salió. Varios, separados por comas. Se ve en la web."
+  - type: input
     id: terminada
     attributes:
       label: "Cuándo la terminaste"

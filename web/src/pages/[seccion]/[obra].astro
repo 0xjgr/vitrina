@@ -25,6 +25,7 @@ import {
   rutaAutor,
   rutaFija,
   rutaGrupo,
+  rutaVia,
   slugsAutores,
   rutaTag,
   seccionDe,
@@ -183,6 +184,19 @@ function motivo(v: Vecina): string {
                   <a class="chip grupo" href={rutaGrupo(g)}>
                     ◇ {g.nombre}
                   </a>
+                ))}
+              </p>
+            )
+          }
+          {
+            (d.via?.length ?? 0) > 0 && (
+              <p class="via">
+                {t.meLlegoPor}{" "}
+                {d.via!.map((v, i) => (
+                  <>
+                    {i > 0 && (i === d.via!.length - 1 ? ` ${t.y} ` : ", ")}
+                    <a href={rutaVia(v)}>{v}</a>
+                  </>
                 ))}
               </p>
             )
@@ -444,6 +458,16 @@ function motivo(v: Vecina): string {
     flex-wrap: wrap;
     gap: 6px;
     margin-top: 14px;
+  }
+  .via {
+    margin: 14px 0 0;
+    color: var(--tenue);
+  }
+  .via a {
+    color: var(--texto);
+    text-decoration: underline;
+    text-decoration-color: var(--borde);
+    text-underline-offset: 3px;
   }
   .grupos {
     margin-bottom: 0;

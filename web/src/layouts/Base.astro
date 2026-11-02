@@ -2,7 +2,7 @@
 import "../styles/global.css";
 import { NOMBRE } from "../config";
 import { t } from "../i18n";
-import { SECCIONES, VISTAZO, rutaFija, url } from "../lib/obras";
+import { SECCIONES, VISTAZO, obras, rutaFija, url } from "../lib/obras";
 
 interface Props {
   titulo?: string;
@@ -10,10 +10,15 @@ interface Props {
   /** Imagen al compartir el enlace: la tarjeta de la obra, si la hay. */
   imagen?: string | null;
   activa?: string;
+  /** Páginas de trabajo del dueño, como la de repasar: fuera de buscadores. */
+  privada?: boolean;
 }
 
-const { titulo, descripcion = t.descripcion, imagen, activa } = Astro.props;
+const { titulo, descripcion = t.descripcion, imagen, activa, privada = false } = Astro.props;
 const completo = titulo ? `${titulo} · ${NOMBRE}` : NOMBRE;
+// «Me llegó por» solo sale en el pie si alguna ficha lo dice: es opcional, y
+// la mayoría de vitrinas no lo usarán.
+const hayVia = (await obras()).some((o) => (o.data.via?.length ?? 0) > 0);
 const canonica = new URL(Astro.url.pathname, Astro.site);
 const imagenAbsoluta = imagen ? new URL(imagen, Astro.site).href : null;
 ---
@@ -26,6 +31,7 @@ const imagenAbsoluta = imagen ? new URL(imagen, Astro.site).href : null;
     <title>{completo}</title>
     <meta name="description" content={descripcion} />
     <link rel="canonical" href={canonica} />
+    {privada && <meta name="robots" content="noindex" />}
     <link rel="icon" type="image/png" href={url("iconos/favicon-64.png")} />
     <link rel="apple-touch-icon" href={url("iconos/apple-touch-icon.png")} />
     <link rel="manifest" href={url("manifest.webmanifest")} />
@@ -98,6 +104,7 @@ const imagenAbsoluta = imagen ? new URL(imagen, Astro.site).href : null;
       <nav aria-label={t.mas}>
         <a href={rutaFija("favoritos")}>{t.mejor}</a>
         <a href={rutaFija("grupos")}>{t.grupos}</a>
+        {hayVia && <a href={rutaFija("via")}>{t.meLlegoPor}</a>}
         <a href={rutaFija("anuario")}>{t.anuario}</a>
         <a href={rutaFija("autores")}>{t.autores}</a>
         <a href={rutaFija("tags")}>{t.tags}</a>

@@ -10,6 +10,8 @@ import {
   rutaFija,
   rutaGrupo,
   rutaTag,
+  rutaVia,
+  vias,
   slugsAutores,
   url,
 } from "../lib/obras";
@@ -33,9 +35,10 @@ export async function GET({ site }: APIContext) {
   const tags = [...new Set(todas.flatMap((o) => o.data.tags ?? []))].map(rutaTag);
   const deGrupos = (await grupos()).map(rutaGrupo);
   const deAños = años(todas).map((y) => rutaFija("anuario", `${y}/`));
+  const deVias = vias(todas).map((v) => rutaVia(v.nombre));
 
   const entradas = [
-    ...[...fijas, ...salas, ...autores, ...tags, ...deGrupos, ...deAños].map((r) => `<url><loc>${absoluta(r)}</loc></url>`),
+    ...[...fijas, ...salas, ...autores, ...tags, ...deGrupos, ...deAños, ...deVias].map((r) => `<url><loc>${absoluta(r)}</loc></url>`),
     ...todas.map((o) => `<url><loc>${absoluta(ruta(o))}</loc>${fecha(o.data.added)}</url>`),
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entradas.join("\n")}\n</urlset>\n`;

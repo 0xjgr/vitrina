@@ -1,0 +1,345 @@
+---
+import Base from "../../layouts/Base.astro";
+import { t } from "../../i18n";
+import { enlaceEditar, obras, opinion, portada, quienFirma, ruta, seccionDe, titulo } from "../../lib/obras";
+
+export const getStaticPaths = () => [{ params: { repasar: t.rutas.repasar } }];
+
+// La opinión es lo único de una ficha que no sale de ninguna fuente, y por eso
+// era lo que faltaba en casi todas. repasar.py las pedía una a una, pero desde
+// la terminal; esto es lo mismo desde el móvil, con el Issue de editar que ya
+// usa el botón ✎: aquí solo se elige la pieza y se abre el Issue relleno.
+//
+// Primero lo que más se ve: lo mejor de lo mejor, luego lo que tiene nota alta
+// y al final lo más reciente.
+const todas = await obras();
+const piezas = todas
+  .map((o) => ({ o, editar: enlaceEditar(o) }))
+  .filter((p): p is { o: (typeof todas)[number]; editar: string } => p.editar !== null)
+  .sort(
+    (a, b) =>
+      Number(!!b.o.data.favorite) - Number(!!a.o.data.favorite) ||
+      (b.o.data.rating ?? 0) - (a.o.data.rating ?? 0) ||
+      (b.o.data.added?.getTime() ?? 0) - (a.o.data.added?.getTime() ?? 0),
+  )
+  .map(({ o, editar }) => ({
+    id: o.id,
+    titulo: titulo(o),
+    quien: [quienFirma(o), o.data.year].filter(Boolean).join(" · "),
+    sala: seccionDe(o.data.type).nombre,
+    tipo: o.data.type,
+    portada: portada(o),
+    ficha: ruta(o),
+    editar,
+    favorita: !!o.data.favorite,
+    conOpinion: opinion(o) !== null,
+    conNota: !!o.data.rating,
+    nota: o.data.rating ?? null,
+  }));
+const sinOpinion = piezas.filter((p) => !p.conOpinion).length;
+const sinNota = piezas.filter((p) => !p.conNota).length;
+---
+
+<Base titulo={t.repasarTitulo} descripcion={t.repasarDescripcion} privada>
+  <div class="contenedor">
+    <header class="titulo-pagina">
+      <h1>{t.repasarTitulo}</h1>
+      <p>{t.repasarSub}</p>
+    </header>
+
+    <div class="listas" role="tablist">
+      <button type="button" role="tab" data-lista="opinion" aria-selected="true">
+        {t.sinOpinion} <span data-cuenta="opinion">{t.quedan(sinOpinion)}</span>
+      </button>
+      <button type="button" role="tab" data-lista="nota" aria-selected="false">
+        {t.sinNota} <span data-cuenta="nota">{t.quedan(sinNota)}</span>
+      </button>
+    </div>
+
+    <article
+      id="pieza"
+      class="pieza"
+      data-piezas={JSON.stringify(piezas)}
+      data-quedan1={t.quedan(1)}
+      data-quedan={t.quedan(2).replace("2", "{n}")}
+      hidden
+    >
+      <a class="marco" id="p-marco"><img id="p-img" alt="" /></a>
+      <div class="datos">
+        <p class="sala" id="p-sala"></p>
+        <h2><a id="p-titulo"></a></h2>
+        <p class="quien" id="p-quien"></p>
+        <p class="etiqueta">{t.suNota}</p>
+        <div class="notas" id="p-notas">
+          {
+            Array.from({ length: 10 }, (_, i) => (
+              <a class="nota" data-nota={i + 1} target="_blank" rel="noopener">
+                {i + 1}
+              </a>
+            ))
+          }
+        </div>
+        <div class="acciones">
+          <a class="opinar" id="p-opinar" target="_blank" rel="noopener">{t.escribirOpinion}</a>
+          <button type="button" id="p-otra">{t.otra}</button>
+        </div>
+        <p class="hecho" id="p-hecho" role="status" hidden>{t.repasarHecho}</p>
+      </div>
+    </article>
+    <p class="vacio" id="vacio" hidden>{t.repasarVacio}</p>
+  </div>
+</Base>
+
+<script>
+  interface Pieza {
+    id: string;
+    titulo: string;
+    quien: string;
+    sala: string;
+    tipo: string;
+    portada: string | null;
+    ficha: string;
+    editar: string;
+    favorita: boolean;
+    conOpinion: boolean;
+    conNota: boolean;
+    nota: number | null;
+  }
+  type Lista = "opinion" | "nota";
+
+  const caja = document.getElementById("pieza") as HTMLElement;
+  const piezas: Pieza[] = JSON.parse(caja.dataset.piezas!);
+  const $ = (id: string) => document.getElementById(id)!;
+  const quedan = (n: number) => (n === 1 ? caja.dataset.quedan1! : caja.dataset.quedan!.replace("{n}", String(n)));
+
+  // Lo ya mandado tarda un par de minutos en publicarse: hasta entonces la
+  // página lo seguiría ofreciendo. Se apunta en este navegador para saltarlo.
+  // Cada entrada lleva su lista, para que mandar la nota no la quite también
+  // de las que no tienen opinión.
+  const CLAVE = "vitrina:repasadas";
+  const leer = (): string[] => {
+    try {
+      return JSON.parse(localStorage.getItem(CLAVE) ?? "[]");
+    } catch {
+      return [];
+    }
+  };
+  const apuntar = (marca: string) => {
+    try {
+      localStorage.setItem(CLAVE, JSON.stringify([...new Set([...leer(), marca])].slice(-500)));
+    } catch {}
+  };
+
+  let lista: Lista = "opinion";
+  let saltadas = new Set<string>();
+  let actual: Pieza | undefined;
+
+  const pendientes = (l: Lista) => {
+    const hechas = new Set(leer());
+    return piezas.filter((p) => !(l === "opinion" ? p.conOpinion : p.conNota) && !hechas.has(`${l}:${p.id}`));
+  };
+
+  function conNota(enlace: string, nota?: number) {
+    const u = new URL(enlace);
+    if (nota) u.searchParams.set("nota", String(nota));
+    return u.href;
+  }
+
+  function pintar() {
+    for (const l of ["opinion", "nota"] as Lista[]) {
+      document.querySelector(`[data-cuenta="${l}"]`)!.textContent = quedan(pendientes(l).length);
+      document.querySelector(`[data-lista="${l}"]`)!.setAttribute("aria-selected", String(l === lista));
+    }
+    const resto = pendientes(lista);
+    // Las saltadas vuelven cuando ya no queda otra.
+    actual = resto.find((p) => !saltadas.has(p.id)) ?? (saltadas.clear(), resto[0]);
+    caja.hidden = !actual;
+    $("vacio").hidden = !!actual;
+    $("p-hecho").hidden = true;
+    if (!actual) return;
+
+    caja.style.setProperty("--seccion", `var(--${actual.tipo})`);
+    caja.classList.toggle("cuadrada", actual.tipo === "album");
+    const img = $("p-img") as HTMLImageElement;
+    img.hidden = !actual.portada;
+    if (actual.portada) img.src = actual.portada;
+    ($("p-marco") as HTMLAnchorElement).href = actual.ficha;
+    ($("p-titulo") as HTMLAnchorElement).href = actual.ficha;
+    $("p-titulo").textContent = (actual.favorita ? "★ " : "") + actual.titulo;
+    $("p-sala").textContent = actual.sala;
+    $("p-quien").textContent = actual.quien;
+    ($("p-opinar") as HTMLAnchorElement).href = actual.editar;
+    document.querySelectorAll<HTMLAnchorElement>("#p-notas a").forEach((a) => {
+      a.href = conNota(actual!.editar, Number(a.dataset.nota));
+      a.classList.toggle("puesta", Number(a.dataset.nota) === actual!.nota);
+    });
+  }
+
+  // Al abrir el Issue se da por hecha en esta lista y, al volver, sale la
+  // siguiente. Con la nota pasa lo mismo en la de las notas.
+  function mandada(l: Lista) {
+    if (!actual) return;
+    apuntar(`${l}:${actual.id}`);
+    $("p-hecho").hidden = false;
+    setTimeout(pintar, 600);
+  }
+  $("p-opinar").addEventListener("click", () => mandada("opinion"));
+  $("p-notas").addEventListener("click", (e) => {
+    if ((e.target as HTMLElement).closest("a")) mandada("nota");
+  });
+  $("p-otra").addEventListener("click", () => {
+    if (actual) saltadas.add(actual.id);
+    pintar();
+  });
+  document.querySelectorAll<HTMLButtonElement>("[data-lista]").forEach((b) =>
+    b.addEventListener("click", () => {
+      lista = b.dataset.lista as Lista;
+      saltadas = new Set();
+      pintar();
+    }),
+  );
+  pintar();
+</script>
+
+<style>
+  .listas {
+    display: flex;
+    gap: 8px;
+    margin: 24px 0;
+    flex-wrap: wrap;
+  }
+  .listas button {
+    padding: 8px 14px;
+    border: 1px solid var(--borde);
+    border-radius: 999px;
+    background: var(--caja);
+    color: var(--texto);
+    font: inherit;
+    cursor: pointer;
+  }
+  .listas button[aria-selected="true"] {
+    background: var(--texto);
+    color: var(--fondo);
+    border-color: var(--texto);
+  }
+  .listas span {
+    opacity: 0.7;
+    margin-left: 4px;
+    font-size: 0.9em;
+  }
+  .pieza {
+    display: grid;
+    grid-template-columns: minmax(140px, 240px) 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+  .marco {
+    display: block;
+    aspect-ratio: 2 / 3;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--caja);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--seccion) 40%, transparent),
+      var(--sombra);
+  }
+  .cuadrada .marco {
+    aspect-ratio: 1;
+  }
+  .marco img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .sala {
+    margin: 0;
+    color: var(--seccion);
+    font-size: 0.85em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  h2 {
+    margin: 4px 0;
+  }
+  h2 a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .quien,
+  .etiqueta {
+    color: var(--tenue);
+    margin: 0 0 4px;
+  }
+  .etiqueta {
+    margin-top: 20px;
+    font-size: 0.85em;
+  }
+  .notas {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 6px;
+    max-width: 440px;
+  }
+  .nota {
+    display: grid;
+    place-items: center;
+    min-height: 40px;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    background: var(--caja);
+    color: var(--texto);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .nota.puesta {
+    background: var(--seccion);
+    border-color: var(--seccion);
+    color: var(--fondo);
+  }
+  .nota:hover,
+  .nota:focus-visible {
+    border-color: var(--seccion);
+    color: var(--seccion);
+  }
+  .acciones {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .opinar,
+  .acciones button {
+    padding: 11px 18px;
+    border-radius: 8px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .opinar {
+    background: var(--texto);
+    color: var(--fondo);
+  }
+  .acciones button {
+    border: 1px solid var(--borde);
+    background: transparent;
+    color: var(--texto);
+  }
+  .hecho,
+  .vacio {
+    color: var(--tenue);
+    margin-top: 16px;
+  }
+  @media (max-width: 560px) {
+    .pieza {
+      grid-template-columns: 1fr;
+    }
+    .marco {
+      max-width: 200px;
+    }
+    .notas {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+</style>

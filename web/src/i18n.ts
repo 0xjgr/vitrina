@@ -36,6 +36,8 @@ const es = {
     grupos: "grupos",
     anuario: "anuario",
     sorprendeme: "sorprendeme",
+    repasar: "repasar",
+    via: "me-llego-por",
   },
   salas: {
     game: { nombre: "Juegos", corto: "Juegos", una: "juego", varias: "juegos" },
@@ -128,6 +130,12 @@ const es = {
   conOpinion: "Con opinión",
   todosLosTags: "Todos los tags →",
   nadaConFiltros: "No hay nada con esos filtros.",
+  salaVacia: "Todavía no hay nada en esta sala.",
+  anadirPrimera: "Añadir la primera pieza →",
+  inicioVacio: "Tu vitrina está vacía",
+  inicioVacioTexto:
+    "Añade la primera pieza pegando su enlace de Letterboxd, Steam, Spotify, Goodreads… o importa de golpe lo que ya tienes apuntado en esos sitios.",
+  comoImportar: "Importar lo que ya tienes",
   quitarFiltros: "Quitar los filtros",
 
   // --- una ficha --------------------------------------------------------------
@@ -149,6 +157,11 @@ const es = {
   siguiente: "Siguiente →",
   resumenFicha: (titulo: string, sala: string) => `${titulo}, en la sala de ${sala.toLowerCase()} de la vitrina.`,
   enGrupos: "En los grupos",
+  meLlegoPor: "Me llegó por",
+  viaDescripcion: "Quién me recomendó cada cosa, o de dónde salió.",
+  viaVacio:
+    "Todavía no hay ninguna. En una ficha, `via: Nombre` dice quién te la recomendó o de dónde salió; también se puede poner al añadirla o editarla desde la web.",
+  viaCuenta: (n: number, piezas: string, nombre: string) => `${piezas} que me ${n === 1 ? "llegó" : "llegaron"} por ${nombre}.`,
   /** «Vista 3 veces», con el verbo de cada sala. */
   veces: (tipo: Tipo, n: number) =>
     `${{ game: "Jugado", film: "Vista", series: "Vista", book: "Leído", album: "Escuchado" }[tipo]} ${n} veces`,
@@ -309,6 +322,21 @@ const es = {
   verEditar: "Enseñar el botón «Editar» en las fichas, en este navegador",
   verEditarNota:
     "Abre un Issue con lo que tiene la ficha; lo cambias, lo mandas y en un par de minutos está publicado. Solo cuentan los Issues tuyos, así que el botón no deja editar a nadie más.",
+  repasarEnlace: "Repasar las piezas sin opinión o sin nota →",
+
+  // --- repasar --------------------------------------------------------------------
+  repasarTitulo: "Repasar",
+  repasarDescripcion: "Las piezas que aún no tienen opinión o nota, una a una.",
+  repasarSub:
+    "Una pieza cada vez. Pulsa su nota o escribe por qué está en la vitrina: se abre el Issue de editar ya relleno, lo mandas y vuelves aquí a por la siguiente.",
+  sinOpinion: "Sin opinión",
+  sinNota: "Sin nota",
+  quedan: (n: number) => (n === 1 ? "queda 1" : `quedan ${n}`),
+  escribirOpinion: "Escribir la opinión →",
+  otra: "Otra",
+  suNota: "Su nota",
+  repasarVacio: "No queda ninguna por repasar en esta lista.",
+  repasarHecho: "Hecho: en un par de minutos sale publicada.",
 
   // --- avisos ---------------------------------------------------------------------
   sinConexion: "Sin conexión",
@@ -358,6 +386,8 @@ const en: Textos = {
     cifras: "stats",
     comparar: "compare",
     anadir: "add",
+    repasar: "review",
+    via: "via",
     constelacion: "constellation",
     creditos: "credits",
     grupos: "groups",
@@ -450,6 +480,12 @@ const en: Textos = {
   conOpinion: "With an opinion",
   todosLosTags: "All tags →",
   nadaConFiltros: "Nothing matches those filters.",
+  salaVacia: "Nothing in this room yet.",
+  anadirPrimera: "Add the first piece →",
+  inicioVacio: "Your display is empty",
+  inicioVacioTexto:
+    "Add the first piece by pasting its link from Letterboxd, Steam, Spotify, Goodreads… or import everything you already logged on those sites at once.",
+  comoImportar: "Import what you already have",
   quitarFiltros: "Clear the filters",
 
   opinionTitulo: "Why it's on display",
@@ -469,6 +505,11 @@ const en: Textos = {
   siguiente: "Next →",
   resumenFicha: (titulo, sala) => `${titulo}, in the ${sala.toLowerCase()} room.`,
   enGrupos: "In the groups",
+  meLlegoPor: "Came to me via",
+  viaDescripcion: "Who recommended each thing to me, or where it came from.",
+  viaVacio:
+    "Nothing here yet. In an entry, `via: Name` says who recommended it or where it came from; you can also set it when adding or editing from the site.",
+  viaCuenta: (_n: number, piezas: string, nombre: string) => `${piezas} that came to me via ${nombre}.`,
   veces: (tipo, n) => `${{ game: "Played", film: "Watched", series: "Watched", book: "Read", album: "Listened to" }[tipo]} ${n} times`,
   mismaHistoria: "Part of the same story",
   mismaHistoriaSub: "Adaptations, sequels and soundtracks that are on display too.",
@@ -608,6 +649,20 @@ const en: Textos = {
   verEditar: "Show the “Edit” button on entries, in this browser",
   verEditarNota:
     "It opens an Issue with what the entry has; change it, submit it and it's published in a couple of minutes. Only your own Issues count, so the button lets nobody else edit.",
+  repasarEnlace: "Review the pieces with no opinion or rating →",
+
+  repasarTitulo: "Review",
+  repasarDescripcion: "The pieces that still have no opinion or rating, one at a time.",
+  repasarSub:
+    "One piece at a time. Tap its rating or write why it's on display: the edit Issue opens already filled in, you submit it and come back here for the next one.",
+  sinOpinion: "No opinion",
+  sinNota: "No rating",
+  quedan: (n: number) => `${n} left`,
+  escribirOpinion: "Write the opinion →",
+  otra: "Another",
+  suNota: "Its rating",
+  repasarVacio: "Nothing left to review in this list.",
+  repasarHecho: "Done: it'll be published in a couple of minutes.",
 
   sinConexion: "Offline",
   sinConexionTitulo: "This room isn't saved",

@@ -23,35 +23,49 @@ desde la web (el Issue **Editar pieza**); `scripts/cuando.py`, que pone
 Spotify (43 juegos ya tienen su mes de empezado y 36 películas su día); y la constelación en tres
 niveles (salas, géneros, obras) con flechas para lo de la misma historia.
 
+El 2 de noviembre: la página **Repasar** (`/repasar/`), que va una a una por
+lo que no tiene opinión o nota y abre el Issue de editar ya relleno (la nota
+del Issue pasó a ser texto, para que se pueda rellenar desde la dirección); las
+tarjetas para compartir en JPEG (la web bajó de 142 a 31 MB) y su caché
+guardada entre despliegues; la Action **Empezar mi vitrina**, para hacerse una
+sin terminal; la Action **Importar cada noche**; los estados vacíos de una
+vitrina recién empezada; los amigos a un toque en Comparar; una captura en el
+README, el repo marcado como plantilla y **«Me llegó por»** (`via`: quién te
+la recomendó, con una página por persona). De paso: las pruebas de editar
+fallaban en cualquier vitrina en inglés (y con ellas el despliegue), y el
+`--dry-run` de importar contaba como nuevo lo que ya estaba. El Issue de alta
+está probado de verdad (#1, con una que ya estaba).
+
 ## Para que funcione lo que ya está
+
+- **Subir `main`.** Lo de arriba (Repasar, la nota como texto en el Issue, las
+  dos Actions nuevas) no existe en GitHub hasta entonces.
+- **Las cuentas para la importación de cada noche**, como secrets del repo:
+  `gh secret set LETTERBOXD` y `gh secret set STEAM` (y `LISTENBRAINZ`,
+  `GOODREADS` si los usas). Y, para que pueda abrir el PR, *Settings → Actions
+  → General → Allow GitHub Actions to create and approve pull requests*.
 
 - **Goodreads o ListenBrainz**, si los usas: su usuario en
   `vitrine.local.json` y `cuando.py` saca las fechas de libros y discos.
   Letterboxd y Steam ya están. El RSS de Letterboxd solo trae las últimas ~50
   películas: lo que se vio antes va a mano o con el export.
 
-- **Subir `main`.** Es lo que publica la web nueva.
-- **Crear la etiqueta `nueva-pieza` en el repo.** La plantilla del Issue la
-  pone, y la Action solo corre con los Issues que la llevan; si la etiqueta no
-  existe, GitHub no la aplica y el Issue se queda sin contestar. Una vez:
-  `gh label create nueva-pieza --description "Añadir una obra a la vitrina"`.
-- **Probar el Issue de verdad** después del primer despliegue: uno con un
-  enlace que ya esté (no toca nada) y otro con uno nuevo, con grupo y fecha.
 - **Comprobar la web publicada**: que las direcciones viejas abren
   (`juegos/golf-it!`, `tags/action`, `index.xml`), que al pegar el enlace de una
   ficha en un chat sale su tarjeta, y que instalarla como app saca *Vitrina* en
   el menú de Compartir.
-- **Marcar el repo como plantilla**, si quieres que otros puedan usarlo con un
-  botón: *Settings → General → Template repository*. Sin eso se puede igual con
-  un fork.
+
+- **Darla a conocer**, cuando haya opiniones: r/ObsidianMD, r/selfhosted y un
+  *Show HN*. El gancho es que ninguna fuente pide clave ni cuenta y que se
+  publica gratis en GitHub Pages.
 
 ## Lo que solo puedo escribir yo
 
 - **Las opiniones.** Hay cinco y cuatro son el texto de prueba (*Hollow Knight
   Silksong*, *Eternal Sunshine of the Spotless Mind*, *In Rainbows*, *Breaking
-  Bad*). En la portada y en las tarjetas se ven mucho. `scripts/repasar.py` las
-  pide una a una.
-- **Las notas.** 43 de 210 tienen. Sin nota, el orden «por aprecio» y las
+  Bad*). En la portada y en las tarjetas se ven mucho. `/repasar/` las pide una
+  a una desde el móvil, y `scripts/repasar.py` desde la terminal.
+- **Las notas.** 43 de 240 tienen; `/repasar/`, pestaña *Sin nota*. Sin nota, el orden «por aprecio» y las
   cifras se quedan cojos.
 - **Los estados.** Casi todo es `finished`; no hay nada `in-progress`, así que
   esa parte de los filtros está vacía.
@@ -92,16 +106,8 @@ De más a menos útil, a mi juicio.
   Unos pocos de serie, que se puedan apagar.
 - **Bandas sonoras.** Hoy no hay ninguna puesta: Wikidata casi nunca sabe
   cuál es el disco, así que van a mano (`soundtrack: ["[[musica/…]]"]`).
-- **Importar solo cada noche.** Una Action programada que pase
-  `importar.py letterboxd-rss` y `listenbrainz`, `cuando.py` y después
-  `al-dia.py`, y abra un PR con los borradores nuevos para revisarlos. Con
-  `cuando.py` dentro, el diario de Letterboxd no se pierde aunque el RSS solo
-  traiga las últimas.
 - **Más niveles en la constelación**: entre géneros y obras, los autores; o
   los grupos que haces tú como otra forma de agruparlas.
-- **«Me llegó por».** Un campo con quién te lo recomendó o de dónde salió. Con
-  el tiempo, una página por persona. Se puede empezar ya con grupos («Lo que me
-  recomendó Pablo»), sin campo nuevo.
 - **«Me llevó a».** Un enlace de una obra a la siguiente que descubriste por
   ella; la constelación lo dibujaría con flechas.
 - **Los docs en inglés.** El README está en los dos idiomas; `docs/scripts.md`

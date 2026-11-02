@@ -13,7 +13,21 @@ filters, every entry with your opinion, the best of the best, your groups, a
 yearbook and a constellation linking works by what they share. No source needs
 an API key, an account or payment.
 
+[![The best of the best, in my display](.github/vitrina.jpg)](https://jorgeress.github.io/vitrina/)
+
 ## Make your own
+
+### Without installing anything
+
+1. **Use this template** (top of this page) → *Create a new repository*.
+2. In your new repository, *Settings → Pages → Source*: **GitHub Actions**.
+3. *Actions → Empezar mi vitrina → Run workflow*: pick the language, its name
+   and yours. It empties the sample collection, sets everything up and
+   publishes it.
+4. Add pieces from the site's *Add* page, or from your phone's Share menu with
+   the site installed as an app.
+
+### From the terminal
 
 1. Use this repository as a template on GitHub (or fork it) and clone it.
 2. Leave it empty and in English:
@@ -118,6 +132,10 @@ entry has a **✎ Edit** link that opens the **Edit piece** Issue with its curre
 rating, status, date and opinion. Change what you want, submit it, and it's
 published in a couple of minutes.
 
+`/review/` (linked from `/add/`) goes one piece at a time through those with no
+opinion or no rating: tap the rating or *Write the opinion* and the same Issue
+opens already filled in.
+
 ### Your opinion
 
 What you write goes at the top of the entry, in its own box, with the source's
@@ -183,6 +201,13 @@ Imports come in as drafts (`draft: true`): visible in Obsidian, not on the site
 until you remove that line. `al-dia.py` fills in what's missing; with
 `--offline`, only what needs no network.
 
+**Every night, on its own:** add your usernames as repository secrets
+(*Settings → Secrets and variables → Actions*): `LETTERBOXD`, `LISTENBRAINZ`,
+`STEAM`, `GOODREADS`. The *Importar cada noche* Action imports, runs
+`al-dia.py` and opens a PR with the new drafts for you to review. For it to
+open the PR, tick *Settings → Actions → General → Allow GitHub Actions to
+create and approve pull requests*.
+
 ### When you finished it
 
 ```bash
@@ -197,9 +222,16 @@ listen on ListenBrainz or in Spotify's history. What isn't certain stays empty.
 
 ### Groups
 
-Collections across rooms (“Anime”, “What Sam recommended”): `groups: [Anime]`
+Collections across rooms (“Anime”, “Summer 2024”): `groups: [Anime]`
 in the entry. A note with its name in `content/groups/` gives it a text, and
 `featured: true` puts it on the home page.
+
+### Who it came from
+
+`via: Sam` (or a list) says who recommended it or where it came from. The
+entry shows it and each name gets a page with everything that came through
+it. The Add and Edit Issues ask for it too; `hidden: [via]` keeps it off the
+site.
 
 ### What shows and what doesn't
 

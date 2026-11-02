@@ -106,8 +106,20 @@ const maximo = Math.max(1, ...porDecada.values());
       }
       {lista.map((o, i) => <Portada obra={o} filtrable viaja prioridad={i < 12} />)}
     </div>
+    {/* Una sala sin nada no es un filtro que no da resultados: en una vitrina
+         recién empezada es lo primero que se ve, y lo que toca es añadir. */}
     <p class="vacio" id="vacio" hidden>
-      {t.nadaConFiltros} <button type="button" id="limpiar">{t.quitarFiltros}</button>
+      {
+        lista.length > 0 ? (
+          <>
+            {t.nadaConFiltros} <button type="button" id="limpiar">{t.quitarFiltros}</button>
+          </>
+        ) : (
+          <>
+            {t.salaVacia} <a href={rutaFija("anadir")}>{t.anadirPrimera}</a>
+          </>
+        )
+      }
     </p>
   </div>
 </Base>
@@ -214,7 +226,7 @@ const maximo = Math.max(1, ...porDecada.values());
       tag = tag === b.dataset.tag ? "" : b.dataset.tag!;
       aplicar();
     });
-  document.getElementById("limpiar")!.addEventListener("click", () => {
+  document.getElementById("limpiar")?.addEventListener("click", () => {
     form.reset();
     tag = "";
     aplicar();

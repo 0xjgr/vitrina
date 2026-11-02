@@ -1,0 +1,111 @@
+name: Importar cada noche
+
+# Lo que hayas visto o escuchado entra solo: cada noche pasa importar.py por
+# el diario de Letterboxd y lo mas escuchado de ListenBrainz, y al-dia.py
+# (portadas, datos, textos, fechas con cuando.py...). Lo nuevo entra en
+# borrador y llega como un PR: lo miras, quitas el `draft` a lo que quieras
+# enseñar y lo fusionas. Nada se publica sin pasar por ti.
+#
+# Las cuentas van en Settings → Secrets and variables → Actions, como
+# secrets: LETTERBOXD, LISTENBRAINZ, STEAM (el id de 17 cifras) y GOODREADS.
+# Secrets y no variables porque los logs de un repo publico los ve cualquiera
+# y GitHub solo tapa los secrets; un perfil de Steam dice de quien es la
+# vitrina mas de lo que hace falta. Sin ninguno, no hace nada.
+#
+# El RSS de Letterboxd solo trae las ultimas ~50 entradas: pasando cada noche
+# no se pierde ninguna, que era lo que pasaba lanzandolo a mano.
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: importar
+  cancel-in-progress: false
+
+jobs:
+  importar:
+    runs-on: ubuntu-latest
+    env:
+      LETTERBOXD: ${{ secrets.LETTERBOXD }}
+      LISTENBRAINZ: ${{ secrets.LISTENBRAINZ }}
+      STEAM: ${{ secrets.STEAM }}
+      GOODREADS: ${{ secrets.GOODREADS }}
+      RAMA: importacion
+    steps:
+      # En la condicion de un job no se pueden leer secrets: se mira aqui, y
+      # sin cuentas el resto de pasos se salta (las copias de la plantilla no
+      # gastan nada hasta que las pongan).
+      - name: Ver si hay cuentas
+        id: cuentas
+        run: |
+          if [ -n "$LETTERBOXD$LISTENBRAINZ$STEAM$GOODREADS" ]; then
+            echo "hay=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "Sin cuentas en los secrets: nada que importar." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.cuentas.outputs.hay
+
+      - uses: actions/setup-python@v7
+        if: steps.cuentas.outputs.hay
+        with:
+          python-version: "3.13"
+
+      - name: Instalar dependencias
+        if: steps.cuentas.outputs.hay
+        run: pip install --quiet -r requirements.txt
+
+      # cuando.py lee las cuentas de vitrine.local.json, como en local. Se
+      # escribe aqui y se borra antes de guardar nada.
+      - name: Importar y poner al dia
+        if: steps.cuentas.outputs.hay
+        run: |
+          python3 - <<'EOF'
+          import json, os
+          cuentas = {k: os.environ[k.upper()] for k in ("letterboxd", "listenbrainz", "steam", "goodreads")
+                     if os.environ.get(k.upper())}
+          json.dump({"accounts": cuentas}, open("vitrine.local.json", "w"))
+          EOF
+          if [ -n "$LETTERBOXD" ]; then python3 scripts/importar.py letterboxd-rss "$LETTERBOXD"; fi
+          if [ -n "$LISTENBRAINZ" ]; then python3 scripts/importar.py listenbrainz "$LISTENBRAINZ"; fi
+          python3 scripts/al-dia.py
+          rm -f vitrine.local.json
+
+      # Una sola rama, rehecha cada noche desde main: si el PR de ayer sigue
+      # abierto, se actualiza con lo de hoy en vez de abrir otro.
+      - name: Abrir o actualizar el PR
+        if: steps.cuentas.outputs.hay
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$(git status --porcelain content)" ]; then
+            echo "Nada nuevo." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          es=$(python3 -c "import json; print(json.load(open('vitrine.config.json')).get('language') == 'es')")
+          if [ "$es" = "True" ]; then
+            titulo="Lo nuevo de tus cuentas"
+            cuerpo="Lo que ha entrado desde Letterboxd, ListenBrainz y compañía, y lo que al-dia.py ha rellenado. Las fichas nuevas van en borrador: quita \`draft: true\` a las que quieras enseñar y fusiona."
+            aviso="No he podido abrir el PR. Activa Settings → Actions → General → «Allow GitHub Actions to create and approve pull requests», o ábrelo a mano desde la rama $RAMA."
+          else
+            titulo="New from your accounts"
+            cuerpo="What came in from Letterboxd, ListenBrainz and the rest, plus what al-dia.py filled in. New entries are drafts: remove \`draft: true\` from the ones you want to show, then merge."
+            aviso="I couldn't open the PR. Turn on Settings → Actions → General → “Allow GitHub Actions to create and approve pull requests”, or open it by hand from the $RAMA branch."
+          fi
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
+          git switch -C "$RAMA"
+          git add content
+          git commit -q -m "$titulo" -m "$(git diff --cached --name-status -- content | head -60)"
+          git push -f origin "$RAMA"
+          git diff --stat HEAD~1 -- content | tail -1 >> "$GITHUB_STEP_SUMMARY"
+          if [ -z "$(gh pr list --head "$RAMA" --state open --json number --jq '.[].number')" ]; then
+            gh pr create --head "$RAMA" --base "${{ github.event.repository.default_branch }}" \
+              --title "$titulo" --body "$cuerpo" || echo "$aviso" >> "$GITHUB_STEP_SUMMARY"
+          fi

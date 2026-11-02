@@ -34,6 +34,19 @@ jobs:
         working-directory: web
         run: npm ci --ignore-scripts --include=optional
 
+      # Las tarjetas para compartir se guardan en una cache por su contenido,
+      # pero vive en node_modules y npm ci la borra: sin esto se repintaban
+      # todas en cada despliegue, unos 0,3 s por ficha (con 2.000, diez
+      # minutos). La clave cambia en cada run para guardar siempre la ultima;
+      # restore-keys recoge la anterior. Va despues de npm ci, que si no la
+      # borraria al instalar.
+      - name: Recuperar las tarjetas ya pintadas
+        uses: actions/cache@v6
+        with:
+          path: web/node_modules/.cache/tarjetas
+          key: tarjetas-${{ github.run_id }}
+          restore-keys: tarjetas-
+
       # Los tipos de las paginas y, con ellos, el esquema de las fichas: una
       # nota de 11 o un estado mal escrito paran aqui, no en la web.
       - name: Revisar tipos

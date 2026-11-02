@@ -46,6 +46,9 @@ Campos:
 - `groups`: los grupos que haces tú, en lista: `groups: [Anime y manga]`. Un
   grupo puede tener su nota en la carpeta `{grupos}/`, con un texto; si no la
   tiene, sale igual.
+- `via`: me llegó por, quién te la recomendó o de dónde salió: `via: Pablo`,
+  o varios en lista. Cada nombre tiene su página. El repo es público: si no
+  quieres que se vea, `hidden: [via]`.
 - `finished_on`: cuándo lo terminaste, `2024`, `2024-05` o `2024-05-03`, con
   la precisión que sepas. Es lo que lo pone en el anuario.
 - `started_on`: cuándo lo empezaste o, un disco, cuándo lo oíste por primera
@@ -111,6 +114,9 @@ Fields:
 - `groups`: the groups you make, as a list: `groups: [Anime]`. A group can
   have its own note in the `{grupos}/` folder, with a text; without one it
   still shows up.
+- `via`: who recommended it or where it came from: `via: Sam`, or several as
+  a list. Each name gets its own page. The repo is public: to keep it off the
+  site, `hidden: [via]`.
 - `finished_on`: when you finished it, `2024`, `2024-05` or `2024-05-03`,
   as precise as you know. It's what puts it in the yearbook.
 - `started_on`: when you started it or, for an album, first heard it. Same
@@ -160,7 +166,7 @@ featured: false
 ---
 
 Un grupo es una colección que haces tú y que cruza las salas: «Anime y
-manga», «Lo que me recomendó Pablo», «Verano de 2024». Esta nota va en la
+manga», «Para ver con mi hermano», «Verano de 2024». Esta nota va en la
 carpeta `{grupos}/`, y su título es el nombre que se pone en las fichas con
 `groups: [Nombre]`.
 
@@ -174,8 +180,8 @@ title:
 featured: false
 ---
 
-A group is a collection you make that crosses the rooms: “Anime”, “What
-Sam recommended”, “Summer 2024”. This note goes in the `{grupos}/` folder,
+A group is a collection you make that crosses the rooms: “Anime”, “To watch
+with my brother”, “Summer 2024”. This note goes in the `{grupos}/` folder,
 and its title is the name you put in entries with `groups: [Name]`.
 
 - `featured: true` shows it on the home page, under the rooms.

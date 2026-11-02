@@ -13,7 +13,20 @@ filtros, la ficha de cada obra con tu opinión, lo mejor de lo mejor, tus grupos
 un anuario y una constelación que las une por lo que comparten. Ninguna fuente
 pide clave, cuenta ni pago.
 
+[![Lo mejor de lo mejor, en mi vitrina](.github/vitrina.jpg)](https://jorgeress.github.io/vitrina/)
+
 ## Hacerte la tuya
+
+### Sin instalar nada
+
+1. **Use this template** (arriba en esta página) → *Create a new repository*.
+2. En tu repo nuevo, *Settings → Pages → Source*: **GitHub Actions**.
+3. *Actions → Empezar mi vitrina → Run workflow*: elige el idioma, su nombre y
+   el tuyo. Vacía la colección de ejemplo, lo deja todo listo y la publica.
+4. Añade piezas desde la página *Añadir* de la web, o desde el menú Compartir
+   del móvil con la web instalada como app.
+
+### Desde la terminal
 
 1. Haz un fork (o *Use this template*) y clónalo.
 2. Déjala vacía y en tu idioma:
@@ -121,6 +134,10 @@ navegador, cada ficha lleva un **✎ Editar** que abre el Issue **Editar pieza**
 con la nota, el estado, la fecha y la opinión que ya tiene. Cambias lo que
 quieras, lo mandas, y en un par de minutos está publicado.
 
+`/repasar/` (enlazada desde `/anadir/`) va una a una por las que no tienen
+opinión o nota: pulsas la nota o *Escribir la opinión* y se abre ese mismo
+Issue ya relleno.
+
 ### Tu opinión
 
 Lo que escribes tú va arriba de la ficha, en su recuadro, y debajo la cita de
@@ -187,6 +204,13 @@ web hasta que quitas esa línea. `al-dia.py` rellena lo que falte; con
 `--sin-red`, solo lo que no pregunta a nadie. Qué trae cada fuente, en
 [`docs/importar.md`](docs/importar.md).
 
+**Cada noche, sola:** pon tus usuarios como secrets del repo (*Settings →
+Secrets and variables → Actions*): `LETTERBOXD`, `LISTENBRAINZ`, `STEAM`,
+`GOODREADS`. La Action *Importar cada noche* importa, pasa `al-dia.py` y abre
+un PR con los borradores nuevos para que los revises. Para que pueda abrirlo,
+marca *Settings → Actions → General → Allow GitHub Actions to create and
+approve pull requests*.
+
 ### Cuándo lo terminaste
 
 ```bash
@@ -201,9 +225,16 @@ seguro se queda vacío. También lo pasa `al-dia.py`.
 
 ### Grupos
 
-Colecciones que cruzan las salas («Anime y manga», «Lo que me recomendó
-Pablo»): `groups: [Anime y manga]` en la ficha. Una nota con su nombre en
+Colecciones que cruzan las salas («Anime y manga», «Verano de 2024»):
+`groups: [Anime y manga]` en la ficha. Una nota con su nombre en
 `content/grupos/` les da texto, y `featured: true` los saca en la entrada.
+
+### Me llegó por
+
+`via: Pablo` (o una lista) dice quién te la recomendó o de dónde salió. Sale en
+la ficha, y cada nombre tiene una página con todo lo que te llegó por ahí. Los
+Issues de añadir y editar también lo preguntan; `hidden: [via]` lo quita de la
+web.
 
 ### Lo que se ve y lo que no
 

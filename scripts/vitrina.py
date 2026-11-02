@@ -321,6 +321,19 @@ def fichas_existentes(carpeta):
     return {p.stem: normal(p.stem) for p in fichas(carpeta)}
 
 
+def ya_existe(carpeta, titulo, fichero=None, privada=False):
+    """Si la obra ya tiene ficha: la misma comprobacion que hace escribir_ficha
+    antes de crear nada. Aparte para que el --dry-run de importar.py diga lo
+    mismo que haria; antes contaba como nueva cualquier cosa, y con un diario
+    de 39 peliculas que ya estaban decia que creaba 39."""
+    nombre = nombre_de_fichero(fichero or titulo)
+    destino = (VAULT / CARPETA_PRIVADA if privada else VAULT) / carpeta / f"{nombre}.md"
+    if destino.exists() or (VAULT / carpeta / f"{nombre}.md").exists():
+        return True
+    # Misma obra escrita distinto ("Parásitos" y "Parasitos"): no se duplica.
+    return normal(titulo) in fichas_existentes(carpeta).values()
+
+
 def escribir_ficha(carpeta, titulo, campos, cuerpo="", borrador=True, fichero=None,
                    privada=False):
     """Deja la ficha en su carpeta. Devuelve None si ya existia.
@@ -334,13 +347,10 @@ def escribir_ficha(carpeta, titulo, campos, cuerpo="", borrador=True, fichero=No
     pasa por aqui. El titulo de verdad no se pierde: se apunta en `title`, que
     es lo que pinta la web, igual que con "El madrileño".
     """
+    if ya_existe(carpeta, titulo, fichero, privada):
+        return None
     nombre = nombre_de_fichero(fichero or titulo)
     destino = (VAULT / CARPETA_PRIVADA if privada else VAULT) / carpeta / f"{nombre}.md"
-    if destino.exists() or (VAULT / carpeta / f"{nombre}.md").exists():
-        return None
-    # Misma obra escrita distinto ("Parásitos" y "Parasitos"): no se duplica.
-    if normal(titulo) in fichas_existentes(carpeta).values():
-        return None
     # La seccion no se pregunta ni se pasa: la dice la carpeta en la que cae.
     # Y el alta es hoy, que es cuando entra; de ella sale "Recien llegadas".
     campos = {"added": date.today().isoformat(), **campos,

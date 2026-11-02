@@ -1,0 +1,125 @@
+name: Empezar mi vitrina
+
+# Hacerse una vitrina sin instalar nada: «Use this template» en GitHub y, en
+# el repo nuevo, Actions → «Empezar mi vitrina» → Run workflow. Hace lo mismo
+# que scripts/empezar.py desde la terminal (vaciar la coleccion de origen,
+# escribir vitrine.config.json, las vistas y las plantillas de los Issues),
+# crea las etiquetas de los Issues y publica.
+#
+# Lo unico que no puede hacer es dar de alta GitHub Pages: pide permisos de
+# administracion del repo, que el token de una Action no tiene. Si no esta,
+# el resumen del run dice donde activarlo.
+on:
+  workflow_dispatch:
+    inputs:
+      language:
+        description: "Idioma / Language"
+        type: choice
+        options: [en, es]
+        default: en
+      name:
+        description: "Nombre de la vitrina / Name of your display (Vitrina, Shelf...)"
+        required: true
+      owner:
+        description: "Tu nombre / Your name"
+        required: true
+      empty:
+        description: "Vaciar la colección de ejemplo / Remove the sample collection"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+  pages: read
+
+jobs:
+  empezar:
+    # En un repo marcado como plantilla no corre nunca: es el de origen, y
+    # vaciarlo seria borrar la coleccion de su dueño. Los repos hechos con
+    # «Use this template» no salen marcados.
+    if: ${{ !github.event.repository.is_template }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Instalar dependencias
+        run: pip install --quiet -r requirements.txt
+
+      # Lo escrito en el formulario va por variables de entorno y como
+      # argumentos sueltos: nunca se pega dentro de la orden.
+      - name: Preparar la vitrina
+        env:
+          IDIOMA: ${{ inputs.language }}
+          NOMBRE: ${{ inputs.name }}
+          DUENO: ${{ inputs.owner }}
+          VACIAR: ${{ inputs.empty }}
+          REPO: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          args=(--language "$IDIOMA" --name "$NOMBRE" --owner "$DUENO" --repo "$REPO")
+          [ "$VACIAR" = "true" ] && args+=(--empty --yes)
+          python3 scripts/empezar.py "${args[@]}"
+          # Lo de la coleccion anterior que no es de las salas: lo que
+          # importaba y fechaba quien la hizo.
+          rm -f vitrine.local.json
+
+      # Las etiquetas son las que disparan la Action de los Issues: sin ellas
+      # GitHub no las pone y el Issue se queda sin contestar.
+      - name: Crear las etiquetas de los Issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IDIOMA: ${{ inputs.language }}
+        run: |
+          if [ "$IDIOMA" = "es" ]; then
+            gh label create nueva-pieza --force --description "Añadir una obra a la vitrina"
+            gh label create editar-pieza --force --description "Cambiar una ficha"
+          else
+            gh label create new-piece --force --description "Add a work to the display"
+            gh label create edit-piece --force --description "Change an entry"
+          fi
+
+      - name: Guardar
+        env:
+          NOMBRE: ${{ inputs.name }}
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
+          git add -A content vitrine.config.json .github/ISSUE_TEMPLATE
+          git commit -q -m "$NOMBRE" -m "Empezada con Empezar mi vitrina / Started with the setup workflow."
+          git push
+
+      # Lo que sube el token de una Action no lanza otras Actions: la
+      # publicacion se pide a mano, y sin Pages dado de alta se avisa.
+      - name: Publicar
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IDIOMA: ${{ inputs.language }}
+        run: |
+          sitio=$(python3 -c "import json; c=json.load(open('vitrine.config.json')); print(c['site'] + c['base'] + '/')")
+          if gh api "repos/$GITHUB_REPOSITORY/pages" --silent 2>/dev/null; then
+            gh workflow run deploy.yaml --ref "$GITHUB_REF_NAME"
+            if [ "$IDIOMA" = "es" ]; then
+              echo "### Lista. En un par de minutos está en $sitio" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "### Done. In a couple of minutes it's live at $sitio" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          else
+            if [ "$IDIOMA" = "es" ]; then
+              {
+                echo "### Falta un paso"
+                echo "Activa GitHub Pages: **Settings → Pages → Source: GitHub Actions**."
+                echo "Después, en Actions, lanza **Publicar Vitrina** (Run workflow) y estará en $sitio"
+              } >> "$GITHUB_STEP_SUMMARY"
+            else
+              {
+                echo "### One step left"
+                echo "Turn on GitHub Pages: **Settings → Pages → Source: GitHub Actions**."
+                echo "Then, in Actions, run **Publicar Vitrina** (Run workflow) and it'll be live at $sitio"
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi

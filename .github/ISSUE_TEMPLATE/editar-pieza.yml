@@ -11,12 +11,11 @@ body:
       description: "La pone el botón Editar de la web: carpeta y nombre del fichero, sin .md."
     validations:
       required: true
-  - type: dropdown
+  - type: input
     id: nota
     attributes:
       label: "Nota"
-      options: ["Sin cambios", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1", "Quitar la nota"]
-      default: 0
+      description: "Del 1 al 10. En blanco, se queda como está; 0 la quita."
   - type: dropdown
     id: estado
     attributes:
@@ -28,6 +27,11 @@ body:
     attributes:
       label: "Cuándo la terminaste"
       description: "AAAA, AAAA-MM o AAAA-MM-DD. Lo que haya aquí sustituye a la fecha; en blanco, se queda como está."
+  - type: input
+    id: via
+    attributes:
+      label: "Me llegó por"
+      description: "Quién te la recomendó o de dónde salió, separados por comas. Sustituye a lo que tenga; en blanco, se queda como está; - lo quita."
   - type: textarea
     id: frase
     attributes:

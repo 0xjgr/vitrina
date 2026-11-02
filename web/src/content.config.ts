@@ -23,7 +23,7 @@ const id = (entrada: string, quitar: string | RegExp = "") =>
 /** Lo que se puede ocultar de una ficha pública, campo a campo. `opinion` es lo
  * que ha escrito el dueño, «Por qué está en la vitrina»; `label`, su nombre
  * de antes, sigue valiendo. */
-export const OCULTABLES = ["rating", "status", "favorite", "opinion", "label", "finished_on", "started_on", "groups", "added", "times"] as const;
+export const OCULTABLES = ["rating", "status", "favorite", "opinion", "label", "finished_on", "started_on", "groups", "added", "times", "via"] as const;
 
 /** Una lista de enlaces a otras fichas: `["[[libros/Chainsaw Man]]"]`. Uno
  * solo, sin lista, vale igual. */
@@ -76,6 +76,12 @@ const obras = defineCollection({
      * escucha; se puede escribir a mano igual que finished_on. */
     started_on: fechaParcial.nullish(),
     groups: z.array(z.union([z.string(), z.number()]).transform(String)).nullish(),
+    /** Me llegó por: quién te la recomendó o de dónde salió («Pablo», «el
+     * podcast de cine»). Uno o varios; cada nombre tiene su página. */
+    via: z
+      .union([z.string(), z.number(), z.array(z.union([z.string(), z.number()]))])
+      .transform((v) => (Array.isArray(v) ? v : [v]).map(String).map((s) => s.trim()).filter(Boolean))
+      .nullish(),
     hidden: z.union([z.boolean(), z.array(z.enum(OCULTABLES))]).nullish(),
     draft: z.boolean().optional(),
     favorite_tracks: z.number().int().nullish(),

@@ -2,6 +2,7 @@
 import Base from "../../layouts/Base.astro";
 import { REPO } from "../../config";
 import { t } from "../../i18n";
+import { rutaFija } from "../../lib/obras";
 
 export const getStaticPaths = () => [{ params: { anadir: t.rutas.anadir } }];
 
@@ -19,6 +20,7 @@ const formulario = `${REPO}/issues/new?template=${t.plantillaIssue}`;
       <button type="submit">{t.seguirGitHub}</button>
     </form>
     <p class="nota">{t.anadirNota}</p>
+    <p class="nota"><a href={rutaFija("repasar")}>{t.repasarEnlace}</a></p>
     <label class="interruptor">
       <input type="checkbox" id="ver-editar" />
       <span>

@@ -1,0 +1,42 @@
+---
+import Base from "../../layouts/Base.astro";
+import Portada from "../../components/Portada.astro";
+import { t } from "../../i18n";
+import { SECCIONES, obras, piezas, rutaFija, vias, type Via } from "../../lib/obras";
+
+export async function getStaticPaths() {
+  return vias(await obras()).map((v) => ({ params: { via: t.rutas.via, quien: v.slug }, props: { v } }));
+}
+
+const { v } = Astro.props as { v: Via };
+const porSala = SECCIONES.map((s) => ({ seccion: s, lista: v.obras.filter((o) => o.data.type === s.tipo) })).filter(
+  (g) => g.lista.length > 0,
+);
+const cuenta = t.viaCuenta(v.obras.length, piezas(v.obras.length), v.nombre);
+---
+
+<Base titulo={`${t.meLlegoPor} ${v.nombre}`} descripcion={cuenta}>
+  <div class="contenedor">
+    <header class="titulo-pagina">
+      <a class="volver" href={rutaFija("via")}>← {t.meLlegoPor}</a>
+      <h1>{v.nombre}</h1>
+      <p>{cuenta}</p>
+    </header>
+    {
+      porSala.map(({ seccion, lista }) => (
+        <section class="bloque" style={`--seccion:var(--${seccion.tipo})`}>
+          {porSala.length > 1 && (
+            <header>
+              <h2>{seccion.nombre}</h2>
+            </header>
+          )}
+          <div class="rejilla">
+            {lista.map((o) => (
+              <Portada obra={o} viaja />
+            ))}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</Base>

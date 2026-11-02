@@ -59,6 +59,7 @@ FORMULARIOS = {
             "estado": "Estado",
             "favorito": "Lo mejor de lo mejor",
             "grupos": "Grupos",
+            "via": "Me llegó por",
             "terminada": "Cuándo la terminaste",
             "frase": "Por qué está en la vitrina",
             "oculta": "Oculta",
@@ -73,6 +74,7 @@ FORMULARIOS = {
         "favorito_opcion": "Es de lo mejor de lo mejor",
         "oculta_opcion": "No sale en la web (el fichero sí está en el repo, que es público)",
         "grupos_ayuda": "Separados por comas. Si el grupo no existe, se crea solo.",
+        "via_ayuda": "Quién te la recomendó o de dónde salió. Varios, separados por comas. Se ve en la web.",
         "terminada_ayuda": "AAAA, AAAA-MM o AAAA-MM-DD. Es lo que la pone en el anuario.",
         "frase_ayuda": "Lo que te dejó. Es tu opinión: va arriba, encima de lo que diga la fuente.",
         "commit": "Entra en la vitrina {titulo}",
@@ -89,6 +91,7 @@ FORMULARIOS = {
             "estado": "Status",
             "favorito": "The best of the best",
             "grupos": "Groups",
+            "via": "Came to me via",
             "terminada": "When you finished it",
             "frase": "Why it's on display",
             "oculta": "Hidden",
@@ -103,6 +106,7 @@ FORMULARIOS = {
         "favorito_opcion": "It's among the best of the best",
         "oculta_opcion": "Don't show it on the site (the file is still in the repo, which is public)",
         "grupos_ayuda": "Comma separated. A group that doesn't exist yet is created on its own.",
+        "via_ayuda": "Who recommended it or where it came from. Several, comma separated. It shows on the site.",
         "terminada_ayuda": "YYYY, YYYY-MM or YYYY-MM-DD. It's what places it in the yearbook.",
         "frase_ayuda": "What it left you. It's your opinion: it goes at the top, above what the source says.",
         "commit": "{titulo} joins the display",
@@ -125,15 +129,18 @@ EDITAR = {
             "nota": "Nota",
             "estado": "Estado",
             "terminada": "Cuándo la terminaste",
+            "via": "Me llegó por",
             "frase": "Por qué está en la vitrina",
             "quitar": "Quitar la opinión",
         },
         "ficha_ayuda": "La pone el botón Editar de la web: carpeta y nombre del fichero, sin .md.",
         "sin_cambios": "Sin cambios",
         "quitar_nota": "Quitar la nota",
+        "nota_ayuda": "Del 1 al 10. En blanco, se queda como está; 0 la quita.",
         "terminada_ayuda": "AAAA, AAAA-MM o AAAA-MM-DD. Lo que haya aquí sustituye a la fecha; en blanco, se queda como está.",
         "frase_ayuda": "Tu opinión. Lo que haya aquí sustituye a la que tiene; en blanco, se queda como está.",
         "quitar_opcion": "Borrar la opinión que tiene",
+        "via_ayuda": "Quién te la recomendó o de dónde salió, separados por comas. Sustituye a lo que tenga; en blanco, se queda como está; - lo quita.",
         "commit": "Cambia {titulo}",
     },
     "en": {
@@ -146,15 +153,18 @@ EDITAR = {
             "nota": "Rating",
             "estado": "Status",
             "terminada": "When you finished it",
+            "via": "Came to me via",
             "frase": "Why it's on display",
             "quitar": "Remove the opinion",
         },
         "ficha_ayuda": "The Edit button on the site fills it in: folder and file name, without .md.",
         "sin_cambios": "No change",
         "quitar_nota": "Remove the rating",
+        "nota_ayuda": "From 1 to 10. Left blank, it stays as it is; 0 removes it.",
         "terminada_ayuda": "YYYY, YYYY-MM or YYYY-MM-DD. What's here replaces the date; left blank, it stays as it is.",
         "frase_ayuda": "Your opinion. What's here replaces the current one; left blank, it stays as it is.",
         "quitar_opcion": "Delete its current opinion",
+        "via_ayuda": "Who recommended it or where it came from, comma separated. Replaces what it has; left blank, it stays as it is; - removes it.",
         "commit": "Edit {titulo}",
     },
 }
@@ -205,6 +215,11 @@ body:
       label: {q(c["grupos"])}
       description: {q(f["grupos_ayuda"])}
   - type: input
+    id: via
+    attributes:
+      label: {q(c["via"])}
+      description: {q(f["via_ayuda"])}
+  - type: input
     id: terminada
     attributes:
       label: {q(c["terminada"])}
@@ -225,11 +240,15 @@ body:
 
 def plantilla_editar(e=EDICION, f=FORMULARIO):
     """La plantilla del Issue de editar. Los ids son los que rellena la web
-    por la direccion (`&ficha=...&frase=...`): no se cambian a la ligera."""
+    por la direccion (`&ficha=...&nota=...&frase=...`): no se cambian a la ligera.
+
+    La nota es un campo de texto y no un desplegable porque GitHub solo deja
+    rellenar desde la direccion los campos de texto: con desplegable, el boton
+    Editar no podia traer la nota que ya tiene la ficha, ni la pagina de
+    repasar abrir el Issue con la nota que se acaba de pulsar."""
     c = e["campos"]
     q = lambda s: json.dumps(s, ensure_ascii=False)  # noqa: E731
     estados = ", ".join(q(x) for x in [e["sin_cambios"], *f["estados"]])
-    notas = ", ".join(q(n) for n in [e["sin_cambios"], *map(str, range(10, 0, -1)), e["quitar_nota"]])
     return f"""# La escribe scripts/desde_issue.py --plantilla: no se toca a mano.
 name: {q(e["nombre"])}
 description: {q(e["descripcion"])}
@@ -243,12 +262,11 @@ body:
       description: {q(e["ficha_ayuda"])}
     validations:
       required: true
-  - type: dropdown
+  - type: input
     id: nota
     attributes:
       label: {q(c["nota"])}
-      options: [{notas}]
-      default: 0
+      description: {q(e["nota_ayuda"])}
   - type: dropdown
     id: estado
     attributes:
@@ -260,6 +278,11 @@ body:
     attributes:
       label: {q(c["terminada"])}
       description: {q(e["terminada_ayuda"])}
+  - type: input
+    id: via
+    attributes:
+      label: {q(c["via"])}
+      description: {q(e["via_ayuda"])}
   - type: textarea
     id: frase
     attributes:
@@ -331,10 +354,8 @@ def peticion(cuerpo):
 
     # Los grupos son nombres escritos a mano: se rechaza lo que no pueda ser
     # un nombre de grupo o parezca una opcion de nueva.py.
-    grupos = [g.strip() for g in leer("grupos").split(",") if g.strip()]
-    for g in grupos:
-        if g.startswith("-") or not re.fullmatch(r"[\w .'&()+-]{1,60}", g):
-            raise ValueError(_("el grupo «{grupo}» lleva caracteres que no valen").format(grupo=g))
+    grupos = nombres(leer("grupos"))
+    via = nombres(leer("via"))
 
     terminada = leer("terminada")
     if terminada and not re.fullmatch(r"\d{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12]\d|3[01]))?)?", terminada):
@@ -342,7 +363,18 @@ def peticion(cuerpo):
 
     return {"enlace": enlace, "rating": nota, "status": estado,
             "favorite": marcada(leer("favorito")), "hidden": marcada(leer("oculta")),
-            "groups": grupos, "finished_on": terminada or None, "frase": leer("frase")}
+            "groups": grupos, "via": via, "finished_on": terminada or None, "frase": leer("frase")}
+
+
+def nombres(texto):
+    """Una lista de nombres escrita a mano, separados por comas: los grupos o
+    de quién te llegó. Se rechaza lo que no pueda ser un nombre o parezca una
+    opción de nueva.py."""
+    lista = [n.strip() for n in (texto or "").split(",") if n.strip()]
+    for n in lista:
+        if n.startswith("-") or not re.fullmatch(r"[\w .'&()+-]{1,60}", n):
+            raise ValueError(_("el grupo «{grupo}» lleva caracteres que no valen").format(grupo=n))
+    return lista
 
 
 FECHA_RE = r"\d{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12]\d|3[01]))?)?"
@@ -382,8 +414,10 @@ def peticion_editar(cuerpo):
 
     md = ficha_de(leer("ficha"))
     campos = {}
+    # «Sin cambios» y «Quitar la nota» son del desplegable de antes: un Issue
+    # abierto con la plantilla vieja tiene que seguir valiendo.
     nota = leer("nota")
-    if nota == e["quitar_nota"]:
+    if nota in ("0", "-", e["quitar_nota"]):
         campos["rating"] = ""
     elif nota and nota != e["sin_cambios"]:
         if not nota.isdigit() or not 1 <= int(nota) <= 10:
@@ -403,6 +437,13 @@ def peticion_editar(cuerpo):
         if not re.fullmatch(FECHA_RE, terminada):
             raise ValueError(_("la fecha «{fecha}» no es AAAA, AAAA-MM ni AAAA-MM-DD").format(fecha=terminada))
         campos["finished_on"] = terminada
+
+    # Un Issue abierto con la plantilla de antes no trae la pregunta: nada.
+    via = leer("via") if e["campos"].get("via") else ""
+    if via == "-":
+        campos["via"] = ""
+    elif via:
+        campos["via"] = nombres(via)
 
     quitar = marcada(leer("quitar"))
     return {"md": md, "campos": campos, "frase": None if quitar else (leer("frase") or None), "quitar": quitar}
@@ -526,6 +567,10 @@ def main(argv=None):
         md = VAULT.parent / creada
         decir(_("Añadida: `{ruta}`.").format(ruta=creada))
         resumen.extend(f"- {d}" for d in informe.get("detalles", []))
+        if pedido.get("via"):
+            # nueva.py no sabe de esto: se pone despues, en la ficha ya hecha.
+            escribir_campos(md, {"via": pedido["via"]})
+            resumen.append(f"- `via`: {', '.join(pedido['via'])}")
         if pedido["frase"]:
             textos.escribir_lo_suyo(md, pedido["frase"])
             decir(_("La frase va como tu opinión, en «{titulo}».").format(titulo=idioma.texto("opinion")))

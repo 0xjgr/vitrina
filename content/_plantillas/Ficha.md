@@ -27,6 +27,9 @@ Campos:
 - `groups`: los grupos que haces tú, en lista: `groups: [Anime y manga]`. Un
   grupo puede tener su nota en la carpeta `grupos/`, con un texto; si no la
   tiene, sale igual.
+- `via`: me llegó por, quién te la recomendó o de dónde salió: `via: Pablo`,
+  o varios en lista. Cada nombre tiene su página. El repo es público: si no
+  quieres que se vea, `hidden: [via]`.
 - `finished_on`: cuándo lo terminaste, `2024`, `2024-05` o `2024-05-03`, con
   la precisión que sepas. Es lo que lo pone en el anuario.
 - `started_on`: cuándo lo empezaste o, un disco, cuándo lo oíste por primera

@@ -829,13 +829,14 @@ class DesdeIssue(unittest.TestCase):
 
     def test_lee_todos_los_campos(self):
         cuerpo = self.CUERPO + ("\n### Grupos\n\nAnime y manga, Verano 2024\n\n"
+                                "### Me llegó por\n\nPablo\n\n"
                                 "### Cuándo la terminaste\n\n2024-05\n\n"
                                 "### Oculta\n\n- [ ] No sale en la web\n")
         pedido = desde_issue.peticion(cuerpo)
         self.assertEqual(pedido, {
             "enlace": "https://letterboxd.com/film/parasite-2019/", "rating": "9",
             "status": "finished", "favorite": True, "hidden": False,
-            "groups": ["Anime y manga", "Verano 2024"], "finished_on": "2024-05",
+            "groups": ["Anime y manga", "Verano 2024"], "via": ["Pablo"], "finished_on": "2024-05",
             "frase": "La vi dos veces seguidas.\nY otra más."})
         self.assertEqual(desde_issue.argumentos(pedido), [
             "https://letterboxd.com/film/parasite-2019/", "--nota", "9",
@@ -1287,6 +1288,9 @@ class Cuando(unittest.TestCase):
         self.assertEqual(cambios, [])
 
 
+PELIS = next(c for c, t in m.SECCIONES.items() if t == "film")
+
+
 class EditarDesdeLaWeb(unittest.TestCase):
     """El Issue «Editar pieza»: cambia solo lo que se pide y solo en una ficha."""
 
@@ -1296,9 +1300,12 @@ class EditarDesdeLaWeb(unittest.TestCase):
              "> [!quote] De qué va\n> Lo que dice la fuente.\n")
 
     def setUp(self):
+        # La carpeta de las películas es la de la configuración: en una vitrina
+        # en inglés es films, y con «pelis» fijo estas pruebas fallaban en
+        # cualquier vitrina hecha con la plantilla, y con ellas el despliegue.
         self.tmp = Path(tempfile.mkdtemp())
-        (self.tmp / "pelis").mkdir()
-        self.md = self.tmp / "pelis" / "Clue.md"
+        (self.tmp / PELIS).mkdir()
+        self.md = self.tmp / PELIS / "Clue.md"
         self.md.write_text(self.FICHA, encoding="utf-8")
         self.parche = mock.patch.object(desde_issue, "VAULT", self.tmp)
         self.parche.start()
@@ -1306,17 +1313,19 @@ class EditarDesdeLaWeb(unittest.TestCase):
     def tearDown(self):
         self.parche.stop()
 
-    def cuerpo(self, nota="Sin cambios", frase="", quitar=" ", ficha="pelis/Clue", fecha=""):
+    def cuerpo(self, nota="Sin cambios", frase="", quitar=" ", ficha=None, fecha="", via=""):
+        ficha = ficha or f"{PELIS}/Clue"
         return (f"### Ficha\n\n{ficha}\n\n### Nota\n\n{nota}\n\n### Estado\n\nSin cambios\n\n"
                 f"### Cuándo la terminaste\n\n{fecha or '_No response_'}\n\n"
+                f"### Me llegó por\n\n{via or '_No response_'}\n\n"
                 f"### Por qué está en la vitrina\n\n{frase or '_No response_'}\n\n"
                 f"### Quitar la opinión\n\n- [{quitar}] Borrar la opinión que tiene")
 
     def test_no_sale_de_las_salas(self):
-        for mala in ("../README", "pelis/../../x", "/etc/passwd", "autores/Alguien", "pelis/No existe", ""):
+        for mala in ("../README", f"{PELIS}/../../x", "/etc/passwd", "autores/Alguien", f"{PELIS}/No existe", ""):
             with self.assertRaises(ValueError, msg=mala):
                 desde_issue.ficha_de(mala)
-        self.assertEqual(desde_issue.ficha_de("pelis/Clue"), self.md)
+        self.assertEqual(desde_issue.ficha_de(f"{PELIS}/Clue"), self.md)
 
     def test_cambia_la_nota_y_la_opinion_y_deja_el_spoiler(self):
         pedido = desde_issue.peticion_editar(self.cuerpo(nota="9", frase="La de ahora.\nEn dos líneas."))
@@ -1348,6 +1357,24 @@ class EditarDesdeLaWeb(unittest.TestCase):
         desde_issue.editar(desde_issue.peticion_editar(self.cuerpo(frase="Nueva.")))
         cuerpo = self.md.read_text(encoding="utf-8").split("---\n", 2)[2]
         self.assertTrue(cuerpo.startswith("\n> [!vitrina] Por qué está en la vitrina\n> Nueva.\n\n> [!spoiler]"))
+
+    def test_la_nota_es_texto_en_blanco_no_toca_y_0_la_quita(self):
+        # La nota pasó de desplegable a texto para que la web pueda rellenarla.
+        self.assertNotIn("rating", desde_issue.peticion_editar(self.cuerpo(nota="_No response_"))["campos"])
+        self.assertEqual(desde_issue.peticion_editar(self.cuerpo(nota="0"))["campos"]["rating"], "")
+        self.assertEqual(desde_issue.peticion_editar(self.cuerpo(nota=" 7 "))["campos"]["rating"], 7)
+        with self.assertRaises(ValueError):
+            desde_issue.peticion_editar(self.cuerpo(nota="11"))
+
+    def test_me_llego_por_se_pone_se_cambia_y_se_quita(self):
+        desde_issue.editar(desde_issue.peticion_editar(self.cuerpo(via="Pablo, el podcast")))
+        self.assertIn("via:\n  - Pablo\n  - el podcast", self.md.read_text(encoding="utf-8"))
+        # En blanco no lo toca.
+        self.assertEqual(desde_issue.editar(desde_issue.peticion_editar(self.cuerpo())), [])
+        desde_issue.editar(desde_issue.peticion_editar(self.cuerpo(via="-")))
+        self.assertRegex(self.md.read_text(encoding="utf-8"), r"(?m)^via:$")
+        with self.assertRaises(ValueError):
+            desde_issue.peticion_editar(self.cuerpo(via="--borrar"))
 
     def test_una_fecha_mal_escrita_no_entra(self):
         with self.assertRaises(ValueError):
