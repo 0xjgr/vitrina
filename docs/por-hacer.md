@@ -1,8 +1,8 @@
 # Por hacer
 
 Lo que queda, separado en lo que hay que hacer para que funcione lo que ya
-está, lo que solo puedo escribir yo y lo que se puede añadir. Al día del 13 de
-octubre de 2026, con 210 fichas.
+está, lo que solo puedo escribir yo y lo que se puede añadir. Al día del 3 de
+noviembre de 2026, con 240 fichas.
 
 ## Hecho desde la lista anterior
 
@@ -38,8 +38,6 @@ está probado de verdad (#1, con una que ya estaba).
 
 ## Para que funcione lo que ya está
 
-- **Subir `main`.** Lo de arriba (Repasar, la nota como texto en el Issue, las
-  dos Actions nuevas) no existe en GitHub hasta entonces.
 - **Las cuentas para la importación de cada noche**, como secrets del repo:
   `gh secret set LETTERBOXD` y `gh secret set STEAM` (y `LISTENBRAINZ`,
   `GOODREADS` si los usas). Y, para que pueda abrir el PR, *Settings → Actions
@@ -50,10 +48,15 @@ está probado de verdad (#1, con una que ya estaba).
   Letterboxd y Steam ya están. El RSS de Letterboxd solo trae las últimas ~50
   películas: lo que se vio antes va a mano o con el export.
 
-- **Comprobar la web publicada**: que las direcciones viejas abren
-  (`juegos/golf-it!`, `tags/action`, `index.xml`), que al pegar el enlace de una
-  ficha en un chat sale su tarjeta, y que instalarla como app saca *Vitrina* en
-  el menú de Compartir.
+- **Probar desde el móvil** lo que no se puede mirar con `curl`: que al pegar
+  el enlace de una ficha en un chat sale su tarjeta (el `og:image` ya apunta al
+  JPEG nuevo), que instalarla como app saca *Vitrina* en el menú de Compartir,
+  y una vuelta por `/repasar/` mandando un Issue de verdad. Las direcciones
+  viejas (`juegos/golf-it!`, `tags/action`, `index.xml`) ya están comprobadas.
+- **La Action «Empezar mi vitrina»** está probada en local (vaciar, pruebas y
+  build de una vitrina en inglés), no en un repo hecho con la plantilla. La
+  primera vez que alguien la use, o con un repo de prueba, mirar que el run
+  sale verde.
 
 - **Darla a conocer**, cuando haya opiniones: r/ObsidianMD, r/selfhosted y un
   *Show HN*. El gancho es que ninguna fuente pide clave ni cuenta y que se
@@ -61,14 +64,17 @@ está probado de verdad (#1, con una que ya estaba).
 
 ## Lo que solo puedo escribir yo
 
-- **Las opiniones.** Hay cinco y cuatro son el texto de prueba (*Hollow Knight
+- **Las opiniones.** Hay cinco de 240, y cuatro son el texto de prueba (*Hollow Knight
   Silksong*, *Eternal Sunshine of the Spotless Mind*, *In Rainbows*, *Breaking
   Bad*). En la portada y en las tarjetas se ven mucho. `/repasar/` las pide una
   a una desde el móvil, y `scripts/repasar.py` desde la terminal.
-- **Las notas.** 43 de 240 tienen; `/repasar/`, pestaña *Sin nota*. Sin nota, el orden «por aprecio» y las
-  cifras se quedan cojos.
-- **Los estados.** Casi todo es `finished`; no hay nada `in-progress`, así que
-  esa parte de los filtros está vacía.
+- **Las notas.** 43 de 240 tienen; `/repasar/`, pestaña *Sin nota*. Sin nota,
+  el orden «por aprecio» y las cifras se quedan cojos.
+- **Los estados.** Casi todo es `finished`; en curso solo está *Cowboy Bebop*.
+  Dos libros no tienen estado, *Chainsaw Man* y *Sakamoto Days*, y por eso no
+  salen ni en lo terminado ni en lo que queda.
+- **«Me llegó por».** El campo `via` existe pero ninguna ficha lo usa todavía;
+  hasta que una lo lleve, el enlace del pie no sale.
 - **Las fechas de terminado.** Las películas ya las tienen (Letterboxd) y los
   juegos tienen cuándo los empezaste (Steam). Las series, los libros y cuándo
   terminaste cada juego van a mano; con el año basta.
