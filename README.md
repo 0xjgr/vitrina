@@ -5,7 +5,7 @@
 A personal collection of games, films, series, books and albums, with what you
 think of each one. It's written in Obsidian and published as a static website.
 This repository is my own, in Spanish
-([jorgeress.github.io/vitrina](https://jorgeress.github.io/vitrina/)), and it
+([0xjgr.github.io/vitrina](https://0xjgr.github.io/vitrina/)), and it
 works as a template for yours, in English or Spanish.
 
 Each work is a Markdown entry. The site shows each room with its covers and
@@ -13,7 +13,7 @@ filters, every entry with your opinion, the best of the best, your groups, a
 yearbook and a constellation linking works by what they share. No source needs
 an API key, an account or payment.
 
-[![The best of the best, in my display](.github/vitrina.jpg)](https://jorgeress.github.io/vitrina/)
+[![The best of the best, in my display](.github/vitrina.jpg)](https://0xjgr.github.io/vitrina/)
 
 ## Make your own
 

@@ -2,9 +2,9 @@
   "name": "Vitrina",
   "owner": "Jorge García",
   "language": "es",
-  "site": "https://jorgeress.github.io",
+  "site": "https://0xjgr.github.io",
   "base": "/vitrina",
-  "repo": "https://github.com/jorgeress/vitrina",
+  "repo": "https://github.com/0xjgr/vitrina",
   "folders": {
     "game": "juegos",
     "film": "pelis",

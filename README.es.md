@@ -3,7 +3,7 @@
 Una colección de juegos, películas, series, libros y discos, con lo que pienso
 de cada uno. Se escribe en Obsidian y se publica como web estática.
 
-**→ [jorgeress.github.io/vitrina](https://jorgeress.github.io/vitrina/)**
+**→ [0xjgr.github.io/vitrina](https://0xjgr.github.io/vitrina/)**
 
 *In English: [README.md](README.md). Sirve de plantilla para hacerte la
 tuya, en castellano o en inglés.*
@@ -13,7 +13,7 @@ filtros, la ficha de cada obra con tu opinión, lo mejor de lo mejor, tus grupos
 un anuario y una constelación que las une por lo que comparten. Ninguna fuente
 pide clave, cuenta ni pago.
 
-[![Lo mejor de lo mejor, en mi vitrina](.github/vitrina.jpg)](https://jorgeress.github.io/vitrina/)
+[![Lo mejor de lo mejor, en mi vitrina](.github/vitrina.jpg)](https://0xjgr.github.io/vitrina/)
 
 ## Hacerte la tuya
 
